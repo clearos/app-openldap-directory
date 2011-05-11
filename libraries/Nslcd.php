@@ -4,7 +4,7 @@
  * Nslcd class.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -64,7 +64,7 @@ clearos_load_library('base/Daemon');
  * Nslcd DNS class.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation

@@ -4,7 +4,7 @@
  * OpenLDAP group manager driver.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
@@ -58,16 +58,16 @@ clearos_load_language('base');
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group as Group;
-use \clearos\apps\openldap_directory\Utilities as Utilities;
-use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group');
-clearos_load_library('openldap_directory/Utilities');
-clearos_load_library('openldap_directory/Directory_Driver');
 clearos_load_library('openldap_directory/Group_Driver');
+clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('openldap_directory/Utilities');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -181,6 +181,7 @@ class Group_Manager_Driver extends Engine
      * @throws Engine_Exception
      */
 
+/*
     public function get_group_memberships($username, $type = Group::TYPE_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -196,6 +197,7 @@ class Group_Manager_Driver extends Engine
 
         return $group_list;
     }
+*/
 
     /**
      * Initializes default group memberships.
@@ -318,11 +320,9 @@ class Group_Manager_Driver extends Engine
         // Load groups from LDAP
         //----------------------
 
-        $directory = new Directory_Driver();
-
         $result = $this->ldaph->search(
             "(&(objectclass=posixGroup))", 
-            $directory->get_groups_container()
+            OpenLDAP::get_groups_container()
         );
 
         $this->ldaph->sort($result, 'cn');

@@ -4,7 +4,7 @@
  * OpenLDAP directory utilities class.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
@@ -57,11 +57,11 @@ require_once $bootstrap . '/bootstrap.php';
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
-use \clearos\apps\openldap_directory\Directory_Driver as Directory_Driver;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 
 clearos_load_library('base/Engine');
 clearos_load_library('openldap/LDAP_Driver');
-clearos_load_library('openldap_directory/Directory_Driver');
+clearos_load_library('openldap_directory/OpenLDAP');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -71,7 +71,7 @@ clearos_load_library('openldap_directory/Directory_Driver');
  * OpenLDAP directory utilities class.
  *
  * @category   Apps
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2006-2011 ClearFoundation
@@ -269,11 +269,9 @@ class Utilities extends Engine
         $usermap_dn = array();
         $usermap_username = array();
 
-        $directory = new Directory_Driver();
-
         $result = $ldaph->search(
             "(&(cn=*)(objectclass=posixAccount))",
-            $directory->get_users_container(),
+            OpenLDAP::get_users_container(),
             array('dn', 'uid')
         );
 

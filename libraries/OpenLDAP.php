@@ -1,7 +1,7 @@
 <?php
 
 /**
- * OpenLDAP directory driver.
+ * OpenLDAP accounts class.
  *
  * @category   Apps
  * @package    OpenLDAP_Directory
@@ -47,37 +47,30 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
-clearos_load_language('directory_manager');
+clearos_load_language('openldap_directory');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
-
-// Factories
-//----------
-
-use \clearos\apps\directory_manager\Directory_Factory as Directory;
-
-clearos_load_library('directory_manager/Directory_Factory');
 
 // Classes
 //--------
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
-use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
+use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\Nslcd as Nslcd;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
-clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
 clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap/LDAP_Driver');
+clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/Nslcd');
 clearos_load_library('openldap_directory/Utilities');
 
@@ -93,7 +86,7 @@ clearos_load_library('base/Engine_Exception');
 ///////////////////////////////////////////////////////////////////////////////
 
 /**
- * ClearOS OpenLDAP directory driver.
+ * OpenLDAP accounts class.
  *
  * @category   Apps
  * @package    OpenLDAP_Directory
@@ -104,7 +97,7 @@ clearos_load_library('base/Engine_Exception');
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
-class Directory_Driver extends Engine
+class OpenLDAP extends Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // C O N S T A N T S
@@ -168,7 +161,6 @@ class Directory_Driver extends Engine
 
     protected $ldaph = NULL;
     protected $config = NULL;
-    protected $modes = NULL;
 
     protected $file_config = NULL;
 
@@ -191,12 +183,6 @@ class Directory_Driver extends Engine
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-
-        $this->modes = array(
-            Directory::MODE_MASTER => lang('directory_manager_master'),
-            Directory::MODE_SLAVE => lang('directory_manager_slave'),
-            Directory::MODE_STANDALONE => lang('directory_manager_standalone')
-        );
     }
 
     /**
@@ -274,28 +260,6 @@ class Directory_Driver extends Engine
         // FIXME: Flexshares?  How do we deal with this in master/replica mode?
     }
 
-    /**
-     * Exports users, groups and computers to LDIF.
-     *
-     * @param string  $ldif  LDIF backup file
-     * @param integer $dbnum database number
-     *
-     * @return void
-     * @throws Engine_Exception, Validation_Exception
-
-     * @return void
-     */
-
-    public function export($ldif = self::FILE_LDIF_BACKUP, $dbnum = self::CONSTANT_BASE_DB_NUM)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // TODO: split code from OpenLDAP driver
-
-        $ldap = new LDAP_Driver();
-        $ldap->export($ldif, $dbnum);
-    }
-
     /** 
      * Returns the base DN.
      *
@@ -303,11 +267,12 @@ class Directory_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_base_dn()
+    public static function get_base_dn()
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $ldap = new LDAP_Driver();
+
         return $ldap->get_base_dn();
     }
 
@@ -333,11 +298,11 @@ class Directory_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_computers_container()
+    public static function get_computers_container()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return self::SUFFIX_COMPUTERS . ',' . $this->get_base_dn();
+        return self::SUFFIX_COMPUTERS . ',' . self::get_base_dn();
     }
 
     /** 
@@ -347,48 +312,11 @@ class Directory_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_groups_container()
+    public static function get_groups_container()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return self::SUFFIX_GROUPS . ',' . $this->get_base_dn();
-    }
-
-    /**
-     * Returns list of directory extensions.
-     *
-     * @return array list of extensions
-     * @throws Engine_Exception
-     */
-
-    public function get_extensions()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $folder = new Folder(self::PATH_EXTENSIONS);
-
-        $list = $folder->get_listing();
-
-        $extensions = array();
-
-        foreach ($list as $extension) {
-            if (! preg_match('/^\./', $extension))
-                $extensions[] = $extension;
-        }
-
-        return $extensions;
-    }
-
-    /**
-     * Returns list of plugins.
-     *
-     * @return array list of services
-     * @throws Engine_Exception
-     */
-
-    public function get_plugins()
-    {
-        clearos_profile(__METHOD__, __LINE__);
+        return self::SUFFIX_GROUPS . ',' . self::get_base_dn();
     }
 
     /**
@@ -405,43 +333,6 @@ class Directory_Driver extends Engine
         return self::CN_MASTER . ',' . self::SUFFIX_SERVERS . ',' . $this->get_base_dn();
     }
 
-    /**
-     * Returns the mode of directory.
-     *
-     * The return values are:
-     * - Directory::MODE_STANDALONE
-     * - Directory::MODE_MASTER
-     * - Directory::MODE_SLAVE
-     *
-     * @return string mode of the directory
-     * @throws Engine_Exception
-     */
-
-    public function get_mode()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $ldap = new LDAP_Driver();
-
-        return $ldap->get_mode();
-    }
-
-    /**
-     * Returns a list of available modes.
-     *
-     * @return array list of modes
-     * @throws Engine_Exception
-     */
-
-    public function get_modes()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $ldap = new LDAP_Driver();
-
-        return $ldap->get_modes();
-    }
-
     /** 
      * Returns the container for password policies.
      *
@@ -449,13 +340,12 @@ class Directory_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_password_policies_container()
+    public static function get_password_policies_container()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return self::SUFFIX_PASSWORD_POLICIES . ',' . $this->get_base_dn();
+        return self::SUFFIX_PASSWORD_POLICIES . ',' . self::get_base_dn();
     }
-
 
     /** 
      * Returns the container for servers.
@@ -464,11 +354,11 @@ class Directory_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_servers_container()
+    public static function get_servers_container()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return self::SUFFIX_SERVERS . ',' . $this->get_base_dn();
+        return self::SUFFIX_SERVERS . ',' . self::get_base_dn();
     }
 
     /** 
@@ -478,27 +368,11 @@ class Directory_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_users_container()
+    public static function get_users_container()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return self::SUFFIX_USERS . ',' . $this->get_base_dn();
-    }
-
-    /**
-     * Imports users, groups and computers from LDIF.
-     *
-     * @return void
-     */
-
-    public function import()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // TODO: split code from OpenLDAP driver
-
-        $ldap = new LDAP_Driver();
-        $ldap->import();
+        return self::SUFFIX_USERS . ',' . self::get_base_dn();
     }
 
     /**
@@ -524,7 +398,7 @@ class Directory_Driver extends Engine
         if (empty($password))
             $password = Utilities::generate_password();
 
-        $this->_initialize(Directory::MODE_MASTER, $domain, $password, $options);
+        $this->_initialize(Accounts_Driver::MODE_MASTER, $domain, $password, $options);
     }
 
     /**
@@ -542,7 +416,7 @@ class Directory_Driver extends Engine
         $options['start'] = $start;
         $options['master_hostname'] = $master_hostname;
 
-        $this->_initialize(Directory::MODE_SLAVE, $domain, $password, $options);
+        $this->_initialize(Accounts_Driver::MODE_SLAVE, $domain, $password, $options);
     }
 
     /**
@@ -562,44 +436,7 @@ class Directory_Driver extends Engine
         if (empty($password))
             $password = Utilities::generate_password();
 
-        $this->_initialize(Directory::MODE_STANDALONE, $domain, $password, $options);
-    }
-
-    /**
-     * Returns the availability of LDAP.
-     *
-     * @return boolean TRUE if LDAP is running
-     */
-
-    public function is_available()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph === NULL)
-            $this->ldaph = Utilities::get_ldap_handle();
-
-        $available = $this->ldaph->is_available();
-
-        return $available;
-    }
-
-    /**
-     * Returns state of LDAP setup.
-     *
-     *
-     * @return boolean TRUE if LDAP has been initialized
-     */
-
-    public function is_initialized()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new File(self::FILE_INITIALIZED);
-
-        if ($file->exists())
-            return TRUE;
-        else
-            return FALSE;
+        $this->_initialize(Accounts_Driver::MODE_STANDALONE, $domain, $password, $options);
     }
 
     /**
@@ -656,6 +493,7 @@ class Directory_Driver extends Engine
     public function synchronize()
     {
         clearos_profile(__METHOD__, __LINE__);
+        // TODO: review
 
         $ldap = new LDAP_Driver();
         $ldap->synchronize();
@@ -731,7 +569,7 @@ class Directory_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (($policy !== Directory::POLICY_LOCALHOST) && ($policy !== Directory::POLICY_LAN))
+        if (($policy !== Accounts_Driver::POLICY_LOCALHOST) && ($policy !== Accounts_Driver::POLICY_LAN))
             return lang('openldap_security_policy_is_invalid');
     }
 
@@ -762,7 +600,7 @@ class Directory_Driver extends Engine
         // Initialize Samba elements in LDAP
         //----------------------------------
 
-        if ($mode !== Directory::MODE_SLAVE) {
+        if ($mode !== Accounts_Driver::MODE_SLAVE) {
 /*
         // FIXME
             if (!$samba->IsDirectoryInitialized()) {

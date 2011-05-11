@@ -18,16 +18,28 @@ $app['description'] = 'OpenLDAP directory driver... blah blah.'; // FIXME: trans
 // App name and categories
 /////////////////////////////////////////////////////////////////////////////
 
-$app['name'] = 'OpenLDAP Directory'; // FIXME
-$app['category'] = lang('base_category_server');
-$app['subcategory'] = lang('base_subcategory_directory');
+$app['name'] = lang('openldap_directory_openldap_directory');
+$app['category'] = lang('base_category_system');
+$app['subcategory'] = 'Account Manager';
+
+/////////////////////////////////////////////////////////////////////////////
+// Controllers
+/////////////////////////////////////////////////////////////////////////////
+
+$app['controllers']['openldap_directory']['title'] = $app['name'];
+$app['controllers']['extensions']['title'] = lang('openldap_directory_extensions');
+$app['controllers']['plugins']['title'] = lang('openldap_directory_plugins');
 
 /////////////////////////////////////////////////////////////////////////////
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
+$app['core_provides'] = array(
+    'system-accounts',
+);
+
 $app['core_requires'] = array(
-    'app-cron-core',
+    'app-accounts-core',
     'app-groups-core',
     'app-network-core',
     'app-samba-core',
@@ -41,3 +53,8 @@ $app['core_requires'] = array(
     'samba-winbind-clients',
     'webconfig-php-ldap'
 );
+
+$app['core_file_manifest'] = array(
+    'openldap.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap.php' ),
+);
+

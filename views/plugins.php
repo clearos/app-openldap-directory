@@ -1,10 +1,10 @@
 <?php
 
 /**
- * OpenLDAP directory view.
+ * OpenLDAP accounts plugins view.
  *
  * @category   ClearOS
- * @package    OpenLDAP_Directory
+ * @package    OpenLDAP_Accounts
  * @subpackage Views
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
@@ -33,43 +33,46 @@
 // Load dependencies
 ///////////////////////////////////////////////////////////////////////////////
 
-$this->lang->load('base');
+$this->lang->load('accounts');
 $this->lang->load('openldap_directory');
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form open
+// Headers
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_open('directory_manager');
-echo form_header(lang('directory_manager_mode'));
-
-echo form_fieldset(lang('base_general_settings'));
-echo field_input('domain', $domain, lang('directory_manager_base_domain'));
-echo field_dropdown('anonymous', $publish_policies, $publish_policy, 'Anonymous Access');
-echo form_fieldset_close();
-
-echo form_fieldset(lang('directory_manager_extensions'));
-echo field_view('example', $base_dn, 'Google Apps');
-echo field_view('example1', $base_dn, 'Zarafa');
-echo field_view('example2', $base_dn, 'Contacts');
-echo field_view('example3', $base_dn, 'RADIUS');
-echo form_fieldset_close();
-
-echo form_fieldset(lang('directory_manager_ldap_information'));
-echo field_dropdown('mode', $modes, $mode, lang('directory_manager_mode'), TRUE);
-echo field_view('base_dn', $base_dn, lang('directory_manager_base_dn'));
-echo field_view('bind_dn', $bind_dn, lang('directory_manager_bind_dn'));
-echo field_view('bind_password', $bind_password, lang('directory_manager_bind_password'));
-echo form_fieldset_close();
-
-
-echo button_set(
-    array( form_submit_update('submit', 'high') )
+$headers = array(
+    lang('accounts_plugin'),
 );
 
 ///////////////////////////////////////////////////////////////////////////////
-// Form close
+// Anchors
 ///////////////////////////////////////////////////////////////////////////////
 
-echo form_footer();
-echo form_close();
+$anchors = array();
+
+///////////////////////////////////////////////////////////////////////////////
+// Items
+///////////////////////////////////////////////////////////////////////////////
+
+foreach ($plugins as $plugin => $details) {
+
+    $item['title'] = $details['nickname'];
+    $item['action'] = '/app/openldap_directory/plugins/view/' . $plugin;
+    $item['anchors'] = anchor_view('/app/openldap_directory/plugins/view/' . $plugin);
+    $item['details'] = array(
+        $details['nickname'],
+    );
+
+    $items[] = $item;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Summary table
+///////////////////////////////////////////////////////////////////////////////
+
+echo summary_table(
+    lang('accounts_plugins'),
+    $anchors,
+    $headers,
+    $items
+);
