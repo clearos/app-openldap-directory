@@ -97,14 +97,8 @@ echo form_header(lang('base_settings'));
 
 echo field_view(lang('openldap_directory_mode'), $mode_text, 'mode_settings');
 
-if (($mode === LDAP::MODE_MASTER) || ($mode === LDAP::MODE_STANDALONE)) {
+if (($mode === LDAP::MODE_MASTER) || ($mode === LDAP::MODE_STANDALONE))
     echo field_input('domain', $domain, lang('openldap_directory_base_domain'), $read_only);
-} else {
-    echo field_input('master_hostname', $master, lang('openldap_directory_master_hostname'), $read_only);
-
-    if ($form_type === 'edit')
-        echo field_input('master_password', $master, lang('openldap_directory_master_password'), $read_only);
-}
 
 echo field_dropdown('policy', $policies, $policy, lang('openldap_directory_publish_policy'), $read_only);
 
