@@ -37,6 +37,7 @@ use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('base');
+$this->lang->load('accounts');
 $this->lang->load('openldap_directory');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -70,10 +71,7 @@ if ($form_type === 'edit') {
 echo "<input type='hidden' id='validated_action' value='$validated_action'>";
 
 if ($status === Accounts_Engine::DRIVER_OTHER) {
-    // FIXME: translate
-    echo infobox_warning(lang('base_warning'),
-        "<p>A different directory is already configured.</p>"
-    );
+    echo infobox_warning(lang('base_warning'), lang('accounts_different_drectory_is_already_configured'));
     return;
 }
 
