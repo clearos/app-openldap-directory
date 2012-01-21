@@ -29,7 +29,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\ldap\LDAP_Engine as LDAP_Engine;
+use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
+use \Exception as Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -61,6 +62,24 @@ class Information extends ClearOS_Controller
 
     function index()
     {
+        // Load dependencies
+        //------------------
+
+        $this->load->library('openldap_directory/Accounts_Driver');
+
+        // Load view data
+        //---------------
+
+        try {
+            $data['status'] = $this->accounts_driver->get_driver_status();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+        }
+
+        // Bail if driver is not set
+        if ($data['status'] === Accounts_Engine::DRIVER_UNSET)
+            return;
+
         // Load views
         //-----------
 

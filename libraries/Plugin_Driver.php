@@ -54,9 +54,11 @@ clearos_load_language('groups');
 
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 
 clearos_load_library('base/Engine');
 clearos_load_library('openldap_directory/Group_Driver');
+clearos_load_library('openldap_directory/OpenLDAP');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -134,9 +136,14 @@ class Plugin_Driver extends Engine
 
         $group = new Group_Driver($this->plugin_name);
 
-        // FIXME - change description in add() to something better
-        if (! $group->exists())
-            $group->add($this->plugin_name);
+        if (! $group->exists()) {
+            $openldap = new OpenLDAP();
+            $openldap->initialize_plugin_groups();
+        }
+/* FIXME
+            $openldap = new OpenLDAP();
+            $openldap->initialize_plugin_groups();
+*/
 
         $group->add_member($username);
     }

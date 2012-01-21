@@ -463,12 +463,19 @@ class OpenLDAP extends Engine
         }
 
         try {
-            $this->initialize_plugin_groups();
+            if ($mode !== Mode_Engine::MODE_SLAVE)
+                $this->initialize_plugin_groups();
         } catch (Exception $e) {
             // Not fatal
         }
 
         $file->delete();
+
+        // Tell accounts system we're done
+        //--------------------------------
+
+        $driver = new Accounts_Driver();
+        $driver->set_initialized();
     }
 
     /**
@@ -481,6 +488,18 @@ class OpenLDAP extends Engine
     public function initialize_plugin_groups()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        // Bail if we are slave... not necessary
+        //--------------------------------------
+
+        $sysmode = Mode_Factory::create();
+        $mode = $sysmode->get_mode();
+
+        if ($mode === Mode_Engine::MODE_SLAVE)
+            return;
+
+        // Load plugin info and initialize
+        //--------------------------------
 
         $accounts = new Accounts_Driver();
 

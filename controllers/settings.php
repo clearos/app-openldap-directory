@@ -29,7 +29,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\ldap\LDAP_Engine as LDAP_Engine;
+use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
+use \Exception as Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -149,8 +150,8 @@ class Settings extends ClearOS_Controller
             $data['status'] = $this->accounts_driver->get_driver_status();
 
             // Go straight to edit mode when unitialized
-            if ($data['system_status'] === LDAP_Engine::STATUS_UNINITIALIZED)
-                $data['form_type'] = 'edit';
+            if ($data['status'] === Accounts_Engine::DRIVER_UNSET)
+                $data['form_type'] = 'init';
             else
                 $data['form_type'] = $form_type;
 

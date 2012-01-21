@@ -44,19 +44,17 @@ $this->lang->load('openldap_directory');
 // Form handler
 ///////////////////////////////////////////////////////////////////////////////
 
-if ($form_type === 'edit') {
+if ($form_type === 'init') {
     $read_only = FALSE;
-    if ($system_status === LDAP::STATUS_UNINITIALIZED) {
-        $buttons = array(
-            form_submit_custom('initialize', lang('base_initialize')),
-            anchor_cancel('/app/openldap_directory')
-        );
-    } else {
-        $buttons = array(
-            form_submit_update('update'),
-            anchor_cancel('/app/openldap_directory')
-        );
-    }
+    $buttons = array(
+        form_submit_custom('initialize', lang('base_initialize')),
+    );
+} else if ($form_type === 'edit') {
+    $read_only = FALSE;
+    $buttons = array(
+        form_submit_update('update'),
+        anchor_cancel('/app/openldap_directory')
+    );
 } else {
     $read_only = TRUE;
     $buttons = array(

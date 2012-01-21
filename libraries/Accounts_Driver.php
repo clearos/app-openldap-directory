@@ -139,7 +139,10 @@ class Accounts_Driver extends Accounts_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return Accounts_Engine::CAPABILITY_READ_WRITE;
+        if ($this->get_mode() == self::MODE_SLAVE)
+            return Accounts_Engine::CAPABILITY_READ_ONLY;
+        else
+            return Accounts_Engine::CAPABILITY_READ_WRITE;
     }
 
     /**

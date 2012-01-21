@@ -34,6 +34,7 @@ Requires: app-network-core
 Requires: app-openldap-core
 Requires: app-users-core
 Requires: authconfig
+Requires: csplugin-filewatch
 Requires: nss-pam-ldapd
 Requires: nscd
 Requires: openldap >= 2.4.19
@@ -59,6 +60,7 @@ cp -r * %{buildroot}/usr/clearos/apps/openldap_directory/
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/backup
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/extensions
+install -D -m 0644 packaging/filewatch-openldap-directory-mode.conf %{buildroot}/etc/clearsync.d/filewatch-openldap-directory-mode.conf
 install -D -m 0755 packaging/initialize-plugins %{buildroot}/usr/sbin/initialize-plugins
 install -D -m 0644 packaging/nslcd.conf %{buildroot}/var/clearos/ldap/synchronize/nslcd.conf
 install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/accounts/drivers/openldap_directory.php
@@ -108,6 +110,7 @@ exit 0
 /usr/clearos/apps/openldap_directory/deploy
 /usr/clearos/apps/openldap_directory/language
 /usr/clearos/apps/openldap_directory/libraries
+/etc/clearsync.d/filewatch-openldap-directory-mode.conf
 /usr/sbin/initialize-plugins
 /var/clearos/ldap/synchronize/nslcd.conf
 /var/clearos/accounts/drivers/openldap_directory.php

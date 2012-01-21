@@ -35,6 +35,7 @@ $app['controllers']['openldap_directory']['title'] = lang('openldap_directory_ap
 $app['obsoletes'] = array(
     'app-directory-server',
 );
+
 $app['core_obsoletes'] = array(
     'app-directory-server-core',
 );
@@ -59,6 +60,7 @@ $app['core_requires'] = array(
     'app-openldap-core',
     'app-users-core',
     'authconfig',
+    'csplugin-filewatch',
     'nss-pam-ldapd',
     'nscd',
     'openldap >= 2.4.19',
@@ -69,6 +71,7 @@ $app['core_requires'] = array(
 );
 
 $app['core_file_manifest'] = array(
+    'filewatch-openldap-directory-mode.conf'=> array('target' => '/etc/clearsync.d/filewatch-openldap-directory-mode.conf'),
     'openldap_directory.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap_directory.php' ),
     'nslcd.conf' => array( 'target' => '/var/clearos/ldap/synchronize/nslcd.conf' ),
     'pam_ldap.conf' => array( 'target' => '/var/clearos/ldap/synchronize/pam_ldap.conf' ),
