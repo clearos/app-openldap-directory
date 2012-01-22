@@ -45,17 +45,20 @@ $this->lang->load('openldap_directory');
 ///////////////////////////////////////////////////////////////////////////////
 
 if ($form_type === 'init') {
+    $initialize_blurb = TRUE;
     $read_only = FALSE;
     $buttons = array(
         form_submit_custom('initialize', lang('base_initialize')),
     );
 } else if ($form_type === 'edit') {
+    $initialize_blurb = FALSE;
     $read_only = FALSE;
     $buttons = array(
         form_submit_update('update'),
         anchor_cancel('/app/openldap_directory')
     );
 } else {
+    $initialize_blurb = FALSE;
     $read_only = TRUE;
     $buttons = array(
         anchor_edit('/app/openldap_directory/settings/edit')
@@ -68,7 +71,7 @@ if ($form_type === 'init') {
 
 echo "<input type='hidden' id='validated_action' value='$validated_action'>";
 
-if ($status === Accounts_Engine::DRIVER_OTHER) {
+if ($driver === Accounts_Engine::DRIVER_OTHER) {
     echo infobox_warning(lang('base_warning'), lang('accounts_different_drectory_is_already_configured'));
     return;
 }
@@ -87,6 +90,8 @@ echo "</div>";
 
 echo "<div id='directory_configuration' style='display:none;'>";
 
+if ($initialize_blurb)
+    echo infobox_highlight(lang('base_help'), lang('openldap_directory_initialize_help'));
 
 echo form_open('openldap_directory/settings/edit');
 echo form_header(lang('base_settings'));

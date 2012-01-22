@@ -57,6 +57,7 @@ clearos_load_language('openldap_directory');
 //--------
 
 use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
+use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
 use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\accounts\Nslcd as Nslcd;
 use \clearos\apps\base\Engine as Engine;
@@ -69,6 +70,7 @@ use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('accounts/Accounts_Configuration');
+clearos_load_library('accounts/Accounts_Engine');
 clearos_load_library('accounts/Nscd');
 clearos_load_library('accounts/Nslcd');
 clearos_load_library('base/Engine');
@@ -365,26 +367,6 @@ class OpenLDAP extends Engine
     }
 
     /**
-     * Returns the initialization status.
-     *
-     * @return boolean TRUE if initialized
-     * @throws Engine_Exception
-     */
-    public function is_initialized()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        try {
-            $accounts = new Accounts_Configuration();
-            $accounts->get_driver();
-        } catch (Accounts_Driver_Not_Set_Exception $e) {
-            return FALSE;
-        }
-
-        return TRUE;
-    }
-
-    /**
      * Imports backup LDAP database from LDIF.
      *
      * @return boolean true if import file exists
@@ -418,7 +400,12 @@ class OpenLDAP extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (($this->is_initialized() && !$force))
+        // Bail if initialized
+        //--------------------
+
+        $driver = new Accounts_Driver();
+
+        if (($driver->is_initialized() && !$force))
             return;
 
         // Set initializing
@@ -445,7 +432,6 @@ class OpenLDAP extends Engine
             $sysmode = Mode_Factory::create();
             $mode = $sysmode->get_mode();
 
-            // FIXME: add slave mode
             if ($mode === Mode_Engine::MODE_MASTER)
                 $ldap->initialize_master($domain, NULL, $force);
             else if ($mode === Mode_Engine::MODE_STANDALONE)
@@ -474,8 +460,8 @@ class OpenLDAP extends Engine
         // Tell accounts system we're done
         //--------------------------------
 
-        $driver = new Accounts_Driver();
         $driver->set_initialized();
+        $driver->synchronize();
     }
 
     /**

@@ -71,13 +71,13 @@ class Information extends ClearOS_Controller
         //---------------
 
         try {
-            $data['status'] = $this->accounts_driver->get_driver_status();
+            $data['initialized'] = $this->accounts_driver->is_initialized();
         } catch (Exception $e) {
             $this->page->view_exception($e);
         }
 
         // Bail if driver is not set
-        if ($data['status'] === Accounts_Engine::DRIVER_UNSET)
+        if (! $data['initialized'])
             return;
 
         // Load views

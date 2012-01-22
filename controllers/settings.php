@@ -106,7 +106,6 @@ class Settings extends ClearOS_Controller
         }
     }
 
-
     function _item($form_type)
     {
         // Load dependencies
@@ -146,14 +145,14 @@ class Settings extends ClearOS_Controller
             $data['domain'] = $this->ldap_driver->get_base_internet_domain();
             $data['mode'] = $this->ldap_driver->get_mode();
             $data['mode_text'] = $this->ldap_driver->get_mode_text();
-            $data['system_status'] = $this->ldap_driver->get_system_status();
-            $data['status'] = $this->accounts_driver->get_driver_status();
+            $data['initialized'] = $this->accounts_driver->is_initialized();
+            $data['driver'] = $this->accounts_driver->get_driver_status();
 
             // Go straight to edit mode when unitialized
-            if ($data['status'] === Accounts_Engine::DRIVER_UNSET)
-                $data['form_type'] = 'init';
-            else
+            if ($data['initialized'])
                 $data['form_type'] = $form_type;
+            else
+                $data['form_type'] = 'init';
 
         } catch (Exception $e) {
             $this->page->view_exception($e);

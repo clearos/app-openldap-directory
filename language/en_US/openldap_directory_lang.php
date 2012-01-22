@@ -1,7 +1,7 @@
 <?php
 
 $lang['openldap_directory_app_name'] = 'Directory Server';
-$lang['openldap_directory_app_description'] = 'The directory server is an implementation (using OpenLDAP) of the Lightweight Directory Access Protocol.  The directory contains information on user records, computers, access controls etc. that can be accessed by services running on the server in addition to other systems access the directory remotely across a network.';
+$lang['openldap_directory_app_description'] = 'The Directory Server provides information on users, groups and systems.  You can provide read only access to your directory to integrate third party applications both locally and in the cloud.';
 $lang['openldap_directory_extensions'] = 'Extensions';
 $lang['openldap_directory_plugins'] = 'Plugins';
 $lang['openldap_directory_publish_policy'] = 'Publish Policy';
@@ -27,3 +27,4 @@ $lang['openldap_directory_username_with_this_name_exists'] = 'Username with this
 $lang['openldap_directory_group_with_this_name_exists'] = 'Group with this name already exists.';
 $lang['openldap_directory_alias_with_this_name_exists'] = 'Alias with this name already exists.';
 $lang['openldap_directory_importing_data'] = 'Importing data.';
+$lang['openldap_directory_initialize_help'] = 'When initializing your Directory Server, please select the base domain that you use for your organization.  This domain is used for authentication and other system services.';
