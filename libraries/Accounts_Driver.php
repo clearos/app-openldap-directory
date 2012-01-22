@@ -239,7 +239,6 @@ class Accounts_Driver extends Accounts_Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        // FIXME: discuss with David -- move "Master" node?
         $dn = 'cn=Master,' . OpenLDAP::get_servers_container();
 
         $attributes = $this->ldaph->read($dn);
@@ -281,12 +280,8 @@ class Accounts_Driver extends Accounts_Engine
         // Check initialized
         //------------------
 
-        try {
-            $accounts = new Accounts_Configuration();
-            $accounts->get_driver();
-        } catch (Accounts_Driver_Not_Set_Exception $e) {
+        if (! $this->is_initialized())
             return Accounts_Engine::STATUS_UNINITIALIZED;
-        }
 
         // Check online/offline
         //---------------------
