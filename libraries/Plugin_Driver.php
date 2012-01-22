@@ -140,10 +140,6 @@ class Plugin_Driver extends Engine
             $openldap = new OpenLDAP();
             $openldap->initialize_plugin_groups();
         }
-/* FIXME
-            $openldap = new OpenLDAP();
-            $openldap->initialize_plugin_groups();
-*/
 
         $group->add_member($username);
     }
@@ -179,11 +175,12 @@ class Plugin_Driver extends Engine
 
         $group = new Group_Driver($this->plugin_name);
 
-        // FIXME - change description in add() to something better
-        if (! $group->exists())
-            $group->add($this->plugin_name);
-
-        $group->delete_member($username);
+        if (! $group->exists()) {
+            $openldap = new OpenLDAP();
+            $openldap->initialize_plugin_groups();
+        } else {
+            $group->delete_member($username);
+        }
     }
 
     /**
