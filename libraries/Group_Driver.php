@@ -527,12 +527,6 @@ class Group_Driver extends Group_Engine
         if ($this->usermap_username === NULL)
             $this->_load_usermap_from_ldap();
 
-        // FIXME: move to Samba extension
-        // TODO: Last minute fix in 5.0.  Make sure winadmin stays in the winadmins group.
-        // JHT is this necessary given the special SID for winadmin?
-        if (($this->group_name == "domain_admins") && !in_array("winadmin", $valid_members))
-            $valid_members[] = "winadmin";
-
         foreach ($valid_members as $member) {
             if (! empty($this->usermap_username[$member]))
                 $attributes['member'][] = $this->usermap_username[$member];
@@ -735,7 +729,7 @@ class Group_Driver extends Group_Engine
         $group_info['description'] = $attributes['description'][0];
         $group_info['members'] = array();
 
-        // FIXME - move to extension
+        // TODO - move to extension
         if (isset($attributes['sambaSID'][0]))
             $group_info['sambaSID'] = $attributes['sambaSID'][0];
 
