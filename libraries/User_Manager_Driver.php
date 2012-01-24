@@ -53,25 +53,18 @@ clearos_load_language('users');
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
-//--------
-
-use \clearos\apps\base\Engine as Engine;
-use \clearos\apps\base\Shell as Shell;
-use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\Group_Manager_Driver as Group_Manager_Driver;
-use \clearos\apps\openldap_directory\User_Driver as User_Driver;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
 use \clearos\apps\users\User_Manager_Engine as User_Manager_Engine;
 
-clearos_load_library('base/Engine');
-clearos_load_library('base/Shell');
-clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/Group_Manager_Driver');
-clearos_load_library('openldap_directory/User_Driver');
+clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('users/User_Engine');
 clearos_load_library('users/User_Manager_Engine');

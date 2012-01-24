@@ -55,16 +55,20 @@ clearos_load_language('groups');
 // Classes
 //--------
 
+use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group_Engine as Group_Engine;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
+use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\User_Manager_Driver as User_Manager_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
+clearos_load_library('accounts/Nscd');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group_Engine');
 clearos_load_library('ldap/LDAP_Client');
+clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/User_Manager_Driver');
 clearos_load_library('openldap_directory/Utilities');
@@ -82,7 +86,6 @@ clearos_load_library('base/Engine_Exception');
 clearos_load_library('base/File_No_Match_Exception');
 clearos_load_library('base/Validation_Exception');
 clearos_load_library('groups/Group_Not_Found_Exception');
-
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -262,6 +265,8 @@ class Group_Driver extends Group_Engine
         $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
 
         $this->ldaph->add($dn, $ldap_object);
+
+        $this->_signal_transaction(lang('groups_added_group'));
     }
 
     /**
@@ -288,6 +293,8 @@ class Group_Driver extends Group_Engine
             $this->set_members($members);    
             return TRUE;
         }
+
+        $this->_signal_transaction(lang('groups_added_member_to_group'));
     }
 
     /**
@@ -313,6 +320,8 @@ class Group_Driver extends Group_Engine
         $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
 
         $this->ldaph->delete($dn);
+
+        $this->_signal_transaction(lang('groups_deleted_group'));
     }
 
     /**
@@ -345,6 +354,8 @@ class Group_Driver extends Group_Engine
         } else {
             return FALSE;
         }
+
+        $this->_signal_transaction(lang('groups_deleted_member'));
     }
 
     /**
@@ -477,6 +488,8 @@ class Group_Driver extends Group_Engine
         $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
 
         $this->ldaph->modify($dn, $attributes);
+
+        $this->_signal_transaction(lang('groups_updated_group_information'));
     }
 
     /**
@@ -533,6 +546,8 @@ class Group_Driver extends Group_Engine
         }
 
         $this->ldaph->modify($dn, $attributes);
+
+        $this->_signal_transaction(lang('groups_updated_group_membership'));
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -990,6 +1005,26 @@ class Group_Driver extends Group_Engine
             $this->usermap_username[$uid] = $dn;
 
             $entry = $this->ldaph->next_entry($entry);
+        }
+    }
+
+    /**
+     * Signals a group transaction.
+     *
+     * @param string $action description of the transaction
+     *
+     * @access private
+     * @return void
+     */
+
+    protected function _signal_transaction($transaction)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            Utilities::signal_transaction($transaction . ' - ' . $this->group_name);
+        } catch (Exception $e) {
+            // Not fatal
         }
     }
 }

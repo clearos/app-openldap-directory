@@ -56,12 +56,16 @@ require_once $bootstrap . '/bootstrap.php';
 //--------
 
 use \clearos\apps\base\Engine as Engine;
+use \clearos\apps\base\File as File;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('base/Engine');
+clearos_load_library('base/File');
 clearos_load_library('openldap/LDAP_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
+clearos_load_library('openldap_directory/Utilities');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -81,6 +85,12 @@ clearos_load_library('openldap_directory/OpenLDAP');
 
 class Utilities extends Engine
 {
+    ///////////////////////////////////////////////////////////////////////////////
+    // C O N S T A N T S
+    ///////////////////////////////////////////////////////////////////////////////
+
+    const FILE_TRANSACTION_LOG = '/var/clearos/openldap_directory/transaction.log';
+
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -358,5 +368,30 @@ class Utilities extends Engine
             $ldap_object['objectClass'] = $object_classes;
 
         return $ldap_object;
+    }
+
+    /**
+     * Signals a transaction in the user/group/plugin world.
+     *
+     * All write actions to LDAP should call this method.  External
+     * applications can then be notified that something in LDAP
+     * has changed.
+     *
+     * @param string $action description of transaction
+     *
+     * @return object extension object
+     */
+
+    public static function signal_transaction($action)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_TRANSACTION_LOG);
+
+        if (!$file->exists())
+            $file->create('root', 'webconfig', '0664');
+
+        $timestamp = date('r');
+        $file->add_lines("$timestamp - $action\n");
     }
 }

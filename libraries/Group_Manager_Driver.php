@@ -228,6 +228,8 @@ class Group_Manager_Driver extends Engine
                 $group->delete_member($username);
             }
         }
+
+        $this->_signal_transaction(lang('groups_updated_group_membership'));
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -383,5 +385,25 @@ class Group_Manager_Driver extends Engine
         ksort($group_data);
 
         return $group_data;
+    }
+
+    /**
+     * Signals a group transaction.
+     *
+     * @param string $action description of the transaction
+     *
+     * @access private
+     * @return void
+     */
+
+    protected function _signal_transaction($transaction)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        try {
+            Utilities::signal_transaction($transaction . ' - ' . $this->group_name);
+        } catch (Exception $e) {
+            // Not fatal
+        }
     }
 }

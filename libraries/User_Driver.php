@@ -252,7 +252,7 @@ class User_Driver extends User_Engine
         // Ping the synchronizer
         //----------------------
 
-        $this->_synchronize();
+        $this->_signal_transaction(lang('users_added_user'));
     }
 
     /**
@@ -351,12 +351,14 @@ class User_Driver extends User_Engine
 
         $dn = $this->_get_dn_for_uid($this->username);
 
-        $this->ldaph->modify($dn, $ldap_object);
+        // TODO: revisit asynchronous deletes
+        // $this->ldaph->modify($dn, $ldap_object);
+        $this->ldaph->delete($dn);
 
         // Ping the synchronizer
         //----------------------
 
-        $this->_synchronize();
+        $this->_signal_transaction(lang('users_deleted_user'));
     }
 
     /**
@@ -574,7 +576,7 @@ class User_Driver extends User_Engine
 
         $this->ldaph->modify($dn, $ldap_object);
 
-        $this->_synchronize();
+        $this->_signal_transaction(lang('users_reset_user_password'));
     }
 
     /**
@@ -680,7 +682,7 @@ class User_Driver extends User_Engine
 
         $this->ldaph->modify($dn, $ldap_object);
 
-        $this->_synchronize();
+        $this->_signal_transaction(lang('users_set_user_password'));
     }
 
     /**
@@ -704,7 +706,7 @@ class User_Driver extends User_Engine
                 $extension->unlock_hook($this->username);
         }
 
-        $this->_synchronize();
+        $this->_signal_transaction(lang('users_unlocked_user_account'));
     }
 
     /**
@@ -778,7 +780,7 @@ class User_Driver extends User_Engine
         // Ping the synchronizer
         //----------------------
 
-        $this->_synchronize();
+        $this->_signal_transaction(lang('users_updated_user_information'));
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -1454,19 +1456,20 @@ return;
     }
 
     /**
-     * Signals LDAP synchronize daemon.
+     * Signals a user transaction.
+     *
+     * @param string $action description of the transaction
      *
      * @access private
      * @return void
      */
 
-    protected function _synchronize()
+    protected function _signal_transaction($transaction)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $nscd = new Nscd();
-            $nscd->clear_cache();
+            Utilities::signal_transaction($transaction . ' - ' . $this->username);
         } catch (Exception $e) {
             // Not fatal
         }
