@@ -475,6 +475,16 @@ class OpenLDAP extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // Bail if not initialized
+        //--------------------
+
+        $driver = new Accounts_Driver();
+
+        if (! $driver->is_initialized())
+            return;
+
+        // Set initializing
+        //-----------------
         // Bail if we are slave... not necessary
         //--------------------------------------
 
@@ -496,7 +506,9 @@ class OpenLDAP extends Engine
             foreach ($plugins as $plugin => $details) {
                 $plugin_group = $plugin . '_plugin'; // TODO: hard coded value
                 $group = new Group_Driver($plugin_group);
-                $group->add($details['name']);
+
+                if (! $group->exists())
+                    $group->add($details['name']);
             }
         } catch (Exception $e) {
             $last_exception = $e;
