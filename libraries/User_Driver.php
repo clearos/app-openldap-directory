@@ -1274,6 +1274,10 @@ return;
                 $ldap_object['clearAccountStatus'] = $user_info['core']['status'];
             else
                 $ldap_object['clearAccountStatus'] = User_Engine::STATUS_ENABLED;
+        } else {
+            // This is required, but not always enabled in old user objects
+            if (empty($old_attributes['clearAccountStatus'][0]))
+                $ldap_object['clearAccountStatus'] = User_Engine::STATUS_ENABLED;
         }
 
         /**
