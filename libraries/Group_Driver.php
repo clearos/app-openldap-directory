@@ -63,6 +63,7 @@ use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\User_Manager_Driver as User_Manager_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
+use \clearos\apps\users\User_Engine as User_Engine;
 
 clearos_load_library('accounts/Nscd');
 clearos_load_library('base/File');
@@ -72,6 +73,7 @@ clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/User_Manager_Driver');
 clearos_load_library('openldap_directory/Utilities');
+clearos_load_library('users/User_Engine');
 
 // Exceptions
 //-----------
@@ -517,7 +519,7 @@ class Group_Driver extends Group_Engine
         //------------------------
 
         $user_manager = new User_Manager_Driver();
-        $user_list = $user_manager->get_list();
+        $user_list = $user_manager->get_list(User_Engine::TYPE_ALL);
 
         $valid_members = array();
 
