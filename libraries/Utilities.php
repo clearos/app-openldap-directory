@@ -52,15 +52,14 @@ require_once $bootstrap . '/bootstrap.php';
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-// Classes
-//--------
-
+use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
+clearos_load_library('accounts/Nscd');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('openldap/LDAP_Driver');
@@ -385,6 +384,9 @@ class Utilities extends Engine
     public static function signal_transaction($action)
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        $nscd = new Nscd();                             
+        $nscd->clear_cache();
 
         $file = new File(self::FILE_TRANSACTION_LOG);
 
