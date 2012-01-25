@@ -41,14 +41,24 @@ require_once $bootstrap . '/bootstrap.php';
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
-use \clearos\apps\accounts\Bootstrap as Bootstrap;
+use \clearos\apps\mode\Mode_Engine as Mode_Engine;
+use \clearos\apps\mode\Mode_Factory as Mode_Factory;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 
-clearos_load_library('accounts/Bootstrap');
+clearos_load_library('mode/Mode_Engine');
+clearos_load_library('mode/Mode_Factory');
+clearos_load_library('openldap_directory/OpenLDAP');
 
 ///////////////////////////////////////////////////////////////////////////////
 // M A I N
 ///////////////////////////////////////////////////////////////////////////////
 
-$bootstrap = new Bootstrap();
+$sysmode = Mode_Factory::create();
 
-$bootstrap->initialize(FALSE);
+$mode = $sysmode->get_mode();
+
+// FIXME: use filesync to see if master is OpenLDAP or AD
+if ($mode === Mode_Engine::MODE_SLAVE) {
+    $openldap = new OpenLDAP();
+    $openldap->initialize();
+}
