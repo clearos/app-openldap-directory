@@ -1,5 +1,7 @@
 <?php
 
+$lang['openldap_directory_directory_is_offline'] = 'Directory is offline.';
+
 $lang['openldap_directory_app_name'] = 'Directory Server';
 $lang['openldap_directory_app_description'] = 'The Directory Server provides information on users, groups and systems.  You can provide read only access to your directory to integrate third party applications both locally and in the cloud.';
 $lang['openldap_directory_extensions'] = 'Extensions';
