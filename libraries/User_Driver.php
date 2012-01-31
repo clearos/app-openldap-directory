@@ -868,43 +868,6 @@ class User_Driver extends User_Engine
     }
 
     /**
-     * Password/verify validation routine.
-     *
-     * @param string $password password
-     * @param string $verify verify
-     *
-     * @return boolean TRUE if password and verify are valid and equal
-     */
-
-    public function validate_password_and_verify($password, $verify)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $is_valid = TRUE;
-
-        if (empty($password)) {
-            $this->AddValidationError(LOCALE_LANG_ERRMSG_REQUIRED_PARAMETER_IS_MISSING . " - " . LOCALE_LANG_PASSWORD, __METHOD__, __LINE__);
-            $is_valid = FALSE;
-        }
-
-        if (empty($verify)) {
-            $this->AddValidationError(LOCALE_LANG_ERRMSG_REQUIRED_PARAMETER_IS_MISSING . " - " . LOCALE_LANG_VERIFY, __METHOD__, __LINE__);
-            $is_valid = FALSE;
-        }
-
-        if ($is_valid) {
-            if ($password == $verify) {
-                $is_valid = $this->validate_password($password);
-            } else {
-                $this->AddValidationError(LOCALE_LANG_ERRMSG_PASSWORD_MISMATCH, __METHOD__, __LINE__);
-                $is_valid = FALSE;
-            }
-        }
-
-        return $is_valid;
-    }
-
-    /**
      * Validation routine for UID number.
      *
      * @param integer $uid_number UID number
@@ -958,7 +921,7 @@ class User_Driver extends User_Engine
      * @param boolean $is_modify set to TRUE if using results on LDAP modif
      *
      * @return boolean TRUE if user_info is valid
-     * @throws Engine_Exception
+     * @throws Engine_Exception, Validation_Exception
      */
 
     public function validate_user_info($user_info, $is_modify = FALSE)
@@ -979,30 +942,16 @@ class User_Driver extends User_Engine
 
         foreach ($user_info as $attribute => $detail) {
             if (isset($this->info_map[$attribute]) && isset($this->info_map[$attribute]['validator'])) {
-                // TODO: afterthought -- password/verify check is done below
-                if ($attribute == 'password')
-                    continue;
-
                 $validator = $this->info_map[$attribute]['validator'];
 
                 Validation_Exception::is_valid($this->$validator($detail));
             }
         }
-// FIXME 
-return;
-
-        // Validate passwords
-        //-------------------
-
-        if (!empty($user_info['password']) || !empty($user_info['verify'])) {
-            if (!($this->validate_password_and_verify($user_info['password'], $user_info['verify']))) {
-                $is_valid = FALSE;
-                $invalid_attrs[] = 'password';
-            }
-        }
 
         // When adding a new user, check for missing attributes
         //-----------------------------------------------------
+        // TODO 
+        return;
 
         if (! $is_modify) {
             foreach ($this->info_map as $attribute => $details) {
