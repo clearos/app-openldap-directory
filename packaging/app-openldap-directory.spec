@@ -1,13 +1,11 @@
 
 Name: app-openldap-directory
-Group: ClearOS/Apps
 Epoch: 1
-Version: 1.0.1
+Version: 1.0.2
 Release: 1%{dist}
 Summary: Directory Server
 License: GPLv3
-Packager: ClearFoundation
-Vendor: ClearFoundation
+Group: ClearOS/Apps
 Source: %{name}-%{version}.tar.gz
 Buildarch: noarch
 Requires: %{name}-core = 1:%{version}-%{release}
@@ -21,8 +19,8 @@ The Directory Server provides information on users, groups and systems.  You can
 
 %package core
 Summary: Directory Server - APIs and install
-Group: ClearOS/Libraries
 License: LGPLv3
+Group: ClearOS/Libraries
 Provides: system-accounts
 Provides: system-accounts-driver
 Provides: system-groups-driver
