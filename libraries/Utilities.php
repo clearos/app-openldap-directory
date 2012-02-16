@@ -143,7 +143,7 @@ class Utilities extends Engine
                 if ($infoname != 'password') {
                     if ($detail['type'] == 'boolean') {
                         $info[$infoname] = ($attributes[$detail['attribute']][0] == 'TRUE') ? TRUE : FALSE;
-                    } elseif ($detail['type'] == 'stringarray') {
+                    } elseif ($detail['type'] == 'string_array') {
                         array_shift($attributes[$detail['attribute']]);
                         $info[$infoname] = $attributes[$detail['attribute']];
                     } else {
@@ -182,17 +182,30 @@ class Utilities extends Engine
             if (isset($mapping[$info]['attribute'])) {
                 $attribute = $mapping[$info]['attribute'];
 
+                // Clean up string arrays (missing keys, empty values)
+                if ($mapping[$info]['type'] == 'string_array') {
+                    $string_array = array();
+
+                    foreach ($value as $item) {
+                        if (!empty($item))
+                            $string_array[] = $item;
+                    }
+                }
+
                 // Delete
-                if (($value === NULL) || ($value === '')) {
+                if (($value === NULL) || ($value === '') || (is_array($string_array) && empty($string_array))) {
                     if ($is_modify)
                         $ldap_object[$attribute] = array();
 
                 // Add/modify
                 } else {
-                    if ($mapping[$info]['type'] == 'boolean')
+                    if ($mapping[$info]['type'] == 'boolean') {
                         $ldap_object[$attribute] = ($value) ? 'TRUE' : 'FALSE';
-                    else
+                    } else if ($mapping[$info]['type'] == 'string_array') {
+                        $ldap_object[$attribute] = $string_array;
+                    } else {
                         $ldap_object[$attribute] = $array[$info];
+                    }
 
                     $object_classes[] = $mapping[$info]['object_class'];
                 }

@@ -193,7 +193,7 @@ class OpenLDAP extends Engine
         // Check for duplicate alias
         //--------------------------
 
-        $result = $this->ldaph->Search(
+        $result = $this->ldaph->search(
             "(&(objectclass=inetOrgPerson)(clearMailAliases=$id))",
             self::get_users_container(),
             array('dn')
@@ -210,7 +210,7 @@ class OpenLDAP extends Engine
         // The "displayName" is used in Samba group mapping.  In other words,
         // the "displayName" is what is used by Windows networking (not the cn).
 
-        $result = $this->ldaph->Search(
+        $result = $this->ldaph->search(
             "(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
             self::get_groups_container(),
             array('dn')
