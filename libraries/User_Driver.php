@@ -852,22 +852,6 @@ class User_Driver extends User_Engine
     }
 
     /**
-     * Password validation routine.
-     *
-     * @param string $password password
-     *
-     * @return boolean TRUE if password is valid
-     */
-
-    public function validate_password($password)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if (preg_match("/[\|;\*]/", $password) || !preg_match("/^[a-zA-Z0-9]/", $password))
-            return lang('users_password_invalid');
-    }
-
-    /**
      * Validation routine for UID number.
      *
      * @param integer $uid_number UID number
