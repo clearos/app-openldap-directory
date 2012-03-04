@@ -519,7 +519,7 @@ class Group_Driver extends Group_Engine
         //------------------------
 
         $user_manager = new User_Manager_Driver();
-        $user_list = $user_manager->get_list(User_Engine::TYPE_ALL);
+        $user_list = $user_manager->get_list(User_Engine::FILTER_ALL);
 
         $valid_members = array();
 

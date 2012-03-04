@@ -254,7 +254,7 @@ class Group_Manager_Driver extends Engine
 
         $ldap_data = $this->_get_details_from_ldap($type);
 
-        if (($type === Group_Engine::TYPE_SYSTEM) || ($type === Group_Engine::TYPE_ALL))
+        if (($type === Group_Engine::TYPE_SYSTEM) || ($type === Group_Engine::FILTER_ALL))
             $posix_data = $this->_get_details_from_posix($type);
 
         $data = array_merge($ldap_data, $posix_data);
@@ -342,7 +342,7 @@ class Group_Manager_Driver extends Engine
             // Add group to list
             //------------------
 
-            if (($type === Group_Engine::TYPE_ALL) || ($type === $group_info['type']))
+            if (($type === Group_Engine::FILTER_ALL) || ($type === $group_info['type']))
                 $group_list[$group_info['group_name']] = $group_info;
 
             $entry = $this->ldaph->next_entry($entry);

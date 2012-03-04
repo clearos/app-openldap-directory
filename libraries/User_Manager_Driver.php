@@ -114,17 +114,17 @@ class User_Manager_Driver extends User_Manager_Engine
     /**
      * Returns the user list.
      *
-     * @param string $type user type
+     * @param string $filter user filter
      *
      * @return array user list
      * @throws Engine_Exception
      */
 
-    public function get_list($type = User_Engine::TYPE_NORMAL)
+    public function get_list($filter = User_Engine::FILTER_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $raw_list = $this->_get_details($type, TRUE);
+        $raw_list = $this->_get_details($filter, TRUE);
 
         $user_list = array();
 
@@ -140,33 +140,33 @@ class User_Manager_Driver extends User_Manager_Engine
      * The details only include core user information, i.e.
      * no extension or group information.
      *
-     * @param string $type user type
+     * @param string $filter user filter
      *
      * @return array user information array
      * @throws Engine_Exception
      */
 
-    public function get_core_details($type = User_Engine::TYPE_NORMAL)
+    public function get_core_details($filter = User_Engine::FILTER_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_details($type, TRUE);
+        return $this->_get_details($filter, TRUE);
     }
 
     /**
      * Returns detailed user information for all users.
      *
-     * @param string $type user type
+     * @param string $filter user filter
      *
      * @return array user information array
      * @throws Engine_Exception
      */
 
-    public function get_details($type = User_Engine::TYPE_NORMAL)
+    public function get_details($filter = User_Engine::FILTER_NORMAL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_details($type, FALSE);
+        return $this->_get_details($filter, FALSE);
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -179,14 +179,14 @@ class User_Manager_Driver extends User_Manager_Engine
      * The core_only flag is nice to have to optimize the method calls.  Pulling
      * in all the extension and group information can be expensive.
      *
-     * @param string  $type      user type
+     * @param string  $filter      user filter
      * @param boolean $core_only core details only
      *
      * @access private
      * @return array user information
      */
 
-    protected function _get_details($type, $core_only)
+    protected function _get_details($filter, $core_only)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -239,7 +239,7 @@ class User_Manager_Driver extends User_Manager_Engine
             }
 
             // TODO: continue filter implementation
-            if ($type === User_Engine::TYPE_NORMAL) {
+            if ($filter === User_Engine::FILTER_NORMAL) {
                 if (in_array($username, User_Engine::$builtin_list)) {
                     $entry = $this->ldaph->next_entry($entry);
                     continue;

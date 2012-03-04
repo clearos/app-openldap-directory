@@ -55,8 +55,8 @@ clearos_load_language('users');
 // Classes
 //--------
 
-use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\groups\Group_Engine as Group_Engine;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
 use \clearos\apps\ldap\LDAP_Utilities as LDAP_Utilities;
 use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
@@ -68,8 +68,8 @@ use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
 
-clearos_load_library('accounts/Nscd');
 clearos_load_library('base/Shell');
+clearos_load_library('groups/Group_Engine');
 clearos_load_library('ldap/LDAP_Client');
 clearos_load_library('ldap/LDAP_Utilities');
 clearos_load_library('openldap_directory/Accounts_Driver');
@@ -399,7 +399,7 @@ class User_Driver extends User_Engine
 
         $groups = new Group_Manager_Driver();
 
-        $groups_info = $groups->get_details(Group_Driver::TYPE_ALL);
+        $groups_info = $groups->get_details(Group_Engine::FILTER_ALL);
 
         $group_list = array();
 
