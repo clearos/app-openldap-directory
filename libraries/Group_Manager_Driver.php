@@ -137,17 +137,17 @@ class Group_Manager_Driver extends Engine
     /**
      * Return a list of groups.
      *
-     * @param string $type group type
+     * @param string $filter group filter
      *
      * @return array a list of groups
      * @throws Engine_Exception
      */
 
-    public function get_list($type = Group_Engine::TYPE_NORMAL)
+    public function get_list($filter = Group_Engine::FILTER_DEFAULT)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $details = $this->_get_details($type);
+        $details = $this->_get_details($filter);
 
         $group_list = array();
 
@@ -166,11 +166,11 @@ class Group_Manager_Driver extends Engine
      * @throws Engine_Exception
      */
 
-    public function get_details($type = Group_Engine::TYPE_NORMAL)
+    public function get_details($filter = Group_Engine::FILTER_DEFAULT)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        return $this->_get_details($type);
+        return $this->_get_details($filter);
     }
 
     /**
@@ -184,11 +184,11 @@ class Group_Manager_Driver extends Engine
      */
 
 /*
-    public function get_group_memberships($username, $type = Group_Engine::TYPE_NORMAL)
+    public function get_group_memberships($username, $filter = Group_Engine::FILTER_DEFAULT)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $groups_info = $this->_get_details($type);
+        $groups_info = $this->_get_details($filter);
 
         $group_list = array();
 
@@ -239,23 +239,23 @@ class Group_Manager_Driver extends Engine
     /**
      * Loads a full list of groups with detailed information.
      *
-     * @param string $type group type
+     * @param string $filter group filter
      *
      * @return array an array containing group data
      * @throws Engine_Exception
      */
 
-    protected function _get_details($type)
+    protected function _get_details($filter)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         $ldap_data = array();
         $posix_data = array();
 
-        $ldap_data = $this->_get_details_from_ldap($type);
+        $ldap_data = $this->_get_details_from_ldap($filter);
 
-        if (($type === Group_Engine::TYPE_SYSTEM) || ($type === Group_Engine::FILTER_ALL))
-            $posix_data = $this->_get_details_from_posix($type);
+        if (($filter === Group_Engine::FILTER_SYSTEM) || ($filter === Group_Engine::FILTER_ALL))
+            $posix_data = $this->_get_details_from_posix();
 
         $data = array_merge($ldap_data, $posix_data);
 
@@ -265,14 +265,14 @@ class Group_Manager_Driver extends Engine
     /**
      * Loads groups from LDAP.
      *
-     * @param string $type group type
+     * @param string $filter group filter
      *
      * @access private
      * @throws Engine_Exception
      * @return array group information
      */
 
-    protected function _get_details_from_ldap($type)
+    protected function _get_details_from_ldap($filter)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -342,7 +342,16 @@ class Group_Manager_Driver extends Engine
             // Add group to list
             //------------------
 
-            if (($type === Group_Engine::FILTER_ALL) || ($type === $group_info['type']))
+            if (($filter === Group_Engine::FILTER_ALL) 
+                || (($filter === Group_Engine::FILTER_SYSTEM) && ($group_info['type'] === Group_Engine::TYPE_SYSTEM))
+                || (($filter === Group_Engine::FILTER_NORMAL) && ($group_info['type'] === Group_Engine::TYPE_NORMAL))
+                || (($filter === Group_Engine::FILTER_BUILTIN) && ($group_info['type'] === Group_Engine::TYPE_BUILTIN))
+                || (($filter === Group_Engine::FILTER_WINDOWS) && ($group_info['type'] === Group_Engine::TYPE_WINDOWS))
+                || (($filter === Group_Engine::FILTER_PLUGIN) && ($group_info['type'] === Group_Engine::TYPE_PLUGIN))
+                || (($filter === Group_Engine::FILTER_DEFAULT) 
+                    && (($group_info['type'] === Group_Engine::TYPE_NORMAL) 
+                    || ($group_info['type'] === Group_Engine::TYPE_BUILTIN)))
+                )
                 $group_list[$group_info['group_name']] = $group_info;
 
             $entry = $this->ldaph->next_entry($entry);
