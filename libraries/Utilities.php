@@ -193,7 +193,7 @@ class Utilities extends Engine
                 }
 
                 // Delete
-                if (($value === NULL) || ($value === '') || (is_array($string_array) && empty($string_array))) {
+                if (($value === NULL) || ($value === '') || (isset($string_array) && is_array($string_array) && empty($string_array))) {
                     if ($is_modify)
                         $ldap_object[$attribute] = array();
 
