@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'openldap_directory';
-$app['version'] = '1.0.6';
+$app['version'] = '1.0.8';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -57,7 +57,7 @@ $app['core_requires'] = array(
     'app-groups-core',
     'app-ldap-core',
     'app-network-core',
-    'app-openldap-core',
+    'app-openldap-core >= 1:1.0.7',
     'app-users-core',
     'authconfig',
     'csplugin-filewatch',

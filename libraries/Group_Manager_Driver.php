@@ -152,7 +152,7 @@ class Group_Manager_Driver extends Engine
         $group_list = array();
 
         foreach ($details as $name => $info)
-            $group_list[] = $info['group_name'];
+            $group_list[] = $info['core']['group_name'];
 
         return $group_list;
     }
@@ -193,7 +193,7 @@ class Group_Manager_Driver extends Engine
         $group_list = array();
 
         foreach ($groups_info as $group_name => $group_details) {
-            if (in_array($username, $group_details['members']))
+            if (in_array($username, $group_details['core']['members']))
                 $group_list[] = $group_name;
         }
 
@@ -303,16 +303,16 @@ class Group_Manager_Driver extends Engine
 
             $group_info = array();
 
-            $group_info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+            $group_info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
             if (preg_match('/_plugin$/', $group_name))
-                $group_info['type'] = Group_Engine::TYPE_PLUGIN;
+                $group_info['core']['type'] = Group_Engine::TYPE_PLUGIN;
             else if (in_array($group_name, Group_Driver::$windows_list))
-                $group_info['type'] = Group_Engine::TYPE_WINDOWS;
+                $group_info['core']['type'] = Group_Engine::TYPE_WINDOWS;
             else if (in_array($group_name, Group_Driver::$builtin_list))
-                $group_info['type'] = Group_Engine::TYPE_BUILTIN;
+                $group_info['core']['type'] = Group_Engine::TYPE_BUILTIN;
             else
-                $group_info['type'] = Group_Engine::TYPE_NORMAL;
+                $group_info['core']['type'] = Group_Engine::TYPE_NORMAL;
 
             // Handle membership
             //------------------
@@ -323,7 +323,7 @@ class Group_Manager_Driver extends Engine
 
             foreach ($raw_members as $membercn) {
                 if (!empty($usermap_dn[$membercn]))
-                    $group_info['members'][] = $usermap_dn[$membercn];
+                    $group_info['core']['members'][] = $usermap_dn[$membercn];
             }
 
             // Add group info from extensions
@@ -343,16 +343,16 @@ class Group_Manager_Driver extends Engine
             //------------------
 
             if (($filter === Group_Engine::FILTER_ALL) 
-                || (($filter === Group_Engine::FILTER_SYSTEM) && ($group_info['type'] === Group_Engine::TYPE_SYSTEM))
-                || (($filter === Group_Engine::FILTER_NORMAL) && ($group_info['type'] === Group_Engine::TYPE_NORMAL))
-                || (($filter === Group_Engine::FILTER_BUILTIN) && ($group_info['type'] === Group_Engine::TYPE_BUILTIN))
-                || (($filter === Group_Engine::FILTER_WINDOWS) && ($group_info['type'] === Group_Engine::TYPE_WINDOWS))
-                || (($filter === Group_Engine::FILTER_PLUGIN) && ($group_info['type'] === Group_Engine::TYPE_PLUGIN))
+                || (($filter === Group_Engine::FILTER_SYSTEM) && ($group_info['core']['type'] === Group_Engine::TYPE_SYSTEM))
+                || (($filter === Group_Engine::FILTER_NORMAL) && ($group_info['core']['type'] === Group_Engine::TYPE_NORMAL))
+                || (($filter === Group_Engine::FILTER_BUILTIN) && ($group_info['core']['type'] === Group_Engine::TYPE_BUILTIN))
+                || (($filter === Group_Engine::FILTER_WINDOWS) && ($group_info['core']['type'] === Group_Engine::TYPE_WINDOWS))
+                || (($filter === Group_Engine::FILTER_PLUGIN) && ($group_info['core']['type'] === Group_Engine::TYPE_PLUGIN))
                 || (($filter === Group_Engine::FILTER_DEFAULT) 
-                    && (($group_info['type'] === Group_Engine::TYPE_NORMAL) 
-                    || ($group_info['type'] === Group_Engine::TYPE_BUILTIN)))
+                    && (($group_info['core']['type'] === Group_Engine::TYPE_NORMAL) 
+                    || ($group_info['core']['type'] === Group_Engine::TYPE_BUILTIN)))
                 )
-                $group_list[$group_info['group_name']] = $group_info;
+                $group_list[$group_info['core']['group_name']] = $group_info;
 
             $entry = $this->ldaph->next_entry($entry);
         }
@@ -383,10 +383,10 @@ class Group_Manager_Driver extends Engine
             $gid = $data[2];
 
             if (($gid >= Group_Driver::GID_RANGE_SYSTEM_MIN) && ($gid <= Group_Driver::GID_RANGE_SYSTEM_MAX)) {
-                $assoc_data['group_name'] = $data[0];
-                $assoc_data['type'] = Group_Engine::TYPE_SYSTEM;
-                $assoc_data['description'] = '';
-                $assoc_data['members'] = explode(',', $data[3]);
+                $assoc_data['core']['group_name'] = $data[0];
+                $assoc_data['core']['type'] = Group_Engine::TYPE_SYSTEM;
+                $assoc_data['core']['description'] = '';
+                $assoc_data['core']['members'] = explode(',', $data[3]);
                 $group_data[$data[0]] = $assoc_data;
             }
         }

@@ -186,14 +186,14 @@ class Group_Driver extends Group_Engine
     /**
      * Adds a group to the system.
      *
-     * @param string $description group description
-     * @param array  $members     member list
+     * @param string $group_info group information
+     * @param array  $members    member list
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add($description, $members = array())
+    public function add($group_info, $members = array())
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -205,11 +205,11 @@ class Group_Driver extends Group_Engine
         if ($this->exists()) {
             $info = $this->_load_group_info();
 
-            if ($info['type'] == Group_Engine::TYPE_WINDOWS)
+            if ($info['core']['type'] == Group_Engine::TYPE_WINDOWS)
                 $warning = lang('groups_group_is_reserved_for_windows');
-            else if ($info['type'] == Group_Engine::TYPE_BUILTIN)
+            else if ($info['core']['type'] == Group_Engine::TYPE_BUILTIN)
                 $warning = lang('groups_group_is_reserved_for_system');
-            else if ($info['type'] == Group_Engine::TYPE_SYSTEM)
+            else if ($info['core']['type'] == Group_Engine::TYPE_SYSTEM)
                 $warning = lang('groups_group_is_reserved_for_system');
             else
                 $warning = lang('groups_group_already_exists');
@@ -228,11 +228,12 @@ class Group_Driver extends Group_Engine
         // Convert array into LDAP object
         //-------------------------------
 
-        $info['gid_number'] = $this->_get_next_gid_number();
-        $info['description'] = $description;
-        $info['group_name'] = $this->group_name;
+        if (empty($group_info['core']['gid_number']))
+            $group_info['core']['gid_number'] = $this->_get_next_gid_number();
 
-        $ldap_object = Utilities::convert_array_to_attributes($info, $this->info_map);
+        $group_info['core']['group_name'] = $this->group_name;
+
+        $ldap_object = Utilities::convert_array_to_attributes($group_info['core'], $this->info_map);
 
         $ldap_object['objectClass'] = array(
             'top',
@@ -243,7 +244,7 @@ class Group_Driver extends Group_Engine
         // Add LDAP attributes from extensions
         //------------------------------------
 
-        $ldap_object = $this->_add_attributes_hook($info, $ldap_object);
+        $ldap_object = $this->_add_attributes_hook($group_info, $ldap_object);
 
         // Handle group members
         //---------------------
@@ -398,7 +399,7 @@ class Group_Driver extends Group_Engine
 
         $info = $this->_load_group_info();
 
-        return $info['members'];
+        return $info['core']['members'];
     }
 
     /**
@@ -436,7 +437,7 @@ class Group_Driver extends Group_Engine
 
         $info = $this->_load_group_info();
 
-        return $info['gid_number'];
+        return $info['core']['gid_number'];
     }
 
     /**
@@ -455,6 +456,56 @@ class Group_Driver extends Group_Engine
         $info = $this->_load_group_info();
 
         return $info;
+    }
+
+    /**
+     * Retrieves default information for a new group.
+     *
+     * @return array group details
+     * @throws Engine_Exception
+     */
+
+    public function get_info_defaults()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = Utilities::load_group_extension($details);
+
+            if ($extension && method_exists($extension, 'get_info_defaults_hook'))
+                $info['extensions'][$extension_name] = $extension->get_info_defaults_hook($this->group_name);
+        }
+
+        return $info;
+    }
+
+    /**
+     * Retrieves full information map for group.
+     *
+     * @throws Engine_Exception
+     *
+     * @return array group details
+     */
+
+    public function get_info_map()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $info_map = array();
+
+        $info_map['core'] = $this->info_map;
+
+        // Add group info map from extensions
+        //----------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = Utilities::load_group_extension($details);
+
+            if ($extension && method_exists($extension, 'get_info_map_hook'))
+                $info_map['extensions'][$extension_name] = $extension->get_info_map_hook();
+        }
+
+        return $info_map;
     }
 
     /**
@@ -552,6 +603,63 @@ class Group_Driver extends Group_Engine
         $this->_signal_transaction(lang('groups_updated_group_membership'));
     }
 
+    /**
+     * Updates a group on the system.
+     *
+     * @param array $group_info group information
+     *
+     * @return void
+     * @throws Validation_Exception, Engine_Exception, User_Not_Found_Exception
+     */
+
+    public function update($group_info)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->ldaph == NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
+
+        // Validate
+        //---------
+
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        // Validation_Exception::is_valid($this->validate_group_info($group_info));
+
+        // User does not exist error
+        //--------------------------
+
+        if (! $this->exists())
+            throw new Group_Not_Found_Exception();
+
+        // Convert user info to LDAP object
+        //---------------------------------
+
+        $ldap_object = $this->_convert_group_array_to_attributes($group_info, TRUE);
+
+        // Update LDAP attributes from extensions
+        //---------------------------------------
+
+        foreach ($this->_get_extensions() as $extension_name => $details) {
+            $extension = Utilities::load_group_extension($details);
+
+            if ($extension && method_exists($extension, 'update_attributes_hook')) {
+                $hook_object = $extension->update_attributes_hook($group_info, $ldap_object);
+                $ldap_object = Utilities::merge_ldap_objects($ldap_object, $hook_object);
+            }
+        }
+
+        // Modify LDAP object
+        //-------------------
+
+        $dn = 'cn=' . LDAP_Client::dn_escape($this->group_name) . ',' . OpenLDAP::get_groups_container();
+        $this->ldaph->modify($dn, $ldap_object);
+
+        // Ping the synchronizer
+        //----------------------
+
+        $this->_signal_transaction(lang('groups_updated_group_information'));
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N   M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -621,9 +729,9 @@ class Group_Driver extends Group_Engine
         //-------------------------------
 
         // $info['gid_number'] = $this->_get_next_gid_number();
-        $info['gid_number'] = $gid_number;
-        $info['description'] = $description;
-        $info['group_name'] = $this->group_name;
+        $info['core']['gid_number'] = $gid_number;
+        $info['core']['description'] = $description;
+        $info['core']['group_name'] = $this->group_name;
 
         $ldap_object = Utilities::convert_array_to_attributes($info, $this->info_map);
 
@@ -695,7 +803,7 @@ class Group_Driver extends Group_Engine
      * @throws Engine_Exception
      */
 
-    public function _convert_array_to_ldap_attributes($group_info)
+    public function _convert_group_array_to_attributes($group_info)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -707,17 +815,24 @@ class Group_Driver extends Group_Engine
             'groupOfNames'
         );
 
-        $attributes['gidNumber'] = $group_info['gid'];
-        $attributes['cn'] = $group_info['group'];
-        $attributes['description'] = $group_info['description'];
+        if (isset($group_info['core']['gid_number']))
+            $attributes['gidNumber'] = $group_info['core']['gid_number'];
 
-        $attributes['member'] = array();
+        if (isset($group_info['core']['group']))
+            $attributes['cn'] = $group_info['core']['group'];
 
-        if (empty($group_info['members']))
-            $group_info['members'] = array(self::CONSTANT_NO_MEMBERS_DN);
+        if (isset($group_info['core']['description']))
+            $attributes['description'] = $group_info['core']['description'];
 
-        foreach ($group_info['members'] as $member)
-            $attributes['member'][] = 'cn=' . $member . ',' . OpenLDAP::get_users_container();
+        if (isset($group_info['core']['members'])) {
+            $attributes['member'] = array();
+
+            if (empty($group_info['members']))
+                $group_info['core']['members'] = array(self::CONSTANT_NO_MEMBERS_DN);
+
+            foreach ($group_info['members'] as $member)
+                $attributes['member'][] = 'cn=' . $member . ',' . OpenLDAP::get_users_container();
+        }
 
         return $attributes;
     }
@@ -735,6 +850,7 @@ class Group_Driver extends Group_Engine
      * @throws Engine_Exception
      */
 
+/*
     public function _convert_ldap_attributes_to_array($attributes)
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -765,6 +881,7 @@ class Group_Driver extends Group_Engine
 
         return $group_info;
     }
+*/
 
     /**
      * Returns extension list.
@@ -850,7 +967,7 @@ class Group_Driver extends Group_Engine
 
         $attributes = $this->ldaph->get_attributes($entry);
 
-        $info = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+        $info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
         // Add user info from extensions
         //------------------------------
@@ -871,7 +988,7 @@ class Group_Driver extends Group_Engine
         if ($this->usermap_dn === NULL)
             $this->_load_usermap_from_ldap();
 
-        $info['members'] = array();
+        $info['core']['members'] = array();
         $nomember_cn = 'cn=' . self::CONSTANT_NO_MEMBERS_DN . ',' . OpenLDAP::get_users_container();
 
         foreach ($raw_members as $membercn) {
@@ -879,17 +996,17 @@ class Group_Driver extends Group_Engine
                 continue;
 
             if (!empty($this->usermap_dn[$membercn]))
-                $info['members'][] = $this->usermap_dn[$membercn];
+                $info['core']['members'][] = $this->usermap_dn[$membercn];
         }
 
         if (preg_match('/_plugin$/', $this->group_name))
-            $group_info['type'] = Group_Engine::TYPE_PLUGIN;
+            $info['core']['type'] = Group_Engine::TYPE_PLUGIN;
         else if (in_array($this->group_name, Group_Driver::$windows_list))
-            $group_info['type'] = Group_Engine::TYPE_WINDOWS;
+            $info['core']['type'] = Group_Engine::TYPE_WINDOWS;
         else if (in_array($this->group_name, Group_Driver::$builtin_list))
-            $group_info['type'] = Group_Engine::TYPE_BUILTIN;
+            $info['core']['type'] = Group_Engine::TYPE_BUILTIN;
         else
-            $group_info['type'] = Group_Engine::TYPE_NORMAL;
+            $info['core']['type'] = Group_Engine::TYPE_NORMAL;
 
         return $info;
     }
@@ -921,17 +1038,17 @@ class Group_Driver extends Group_Engine
         if (count($parts) != 4)
             return;
 
-        $info['group_name'] = $parts[0];
-        $info['gid_number'] = $parts[2];
-        $info['members'] = explode(',', $parts[3]);
+        $info['core']['group_name'] = $parts[0];
+        $info['core']['gid_number'] = $parts[2];
+        $info['core']['members'] = explode(',', $parts[3]);
 
         // Sanity check: check for non-compliant group ID
         //-----------------------------------------------
 
-        if (($info['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['gid_number'] <= self::GID_RANGE_SYSTEM_MAX)) {
-            $info['type'] = Group_Engine::TYPE_SYSTEM;
+        if (($info['core']['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['core']['gid_number'] <= self::GID_RANGE_SYSTEM_MAX)) {
+            $info['core']['type'] = Group_Engine::TYPE_SYSTEM;
         } else {
-            $info['type'] = Group_Engine::TYPE_UNKNOWN;
+            $info['core']['type'] = Group_Engine::TYPE_UNKNOWN;
         }
 
         return $info;
