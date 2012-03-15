@@ -199,7 +199,7 @@ class User_Manager_Driver extends User_Manager_Engine
             $group_lookup = array();
 
             foreach ($group_data as $group => $details) {
-                foreach ($details['members'] as $username) {
+                foreach ($details['core']['members'] as $username) {
                     if (array_key_exists($username, $group_lookup))
                         $group_lookup[$username][] = $group;
                     else
