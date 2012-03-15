@@ -105,6 +105,12 @@ class Accounts_Driver extends Accounts_Engine
     const FILE_INITIALIZING = '/var/clearos/openldap_directory/initializing';
     const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 
+    // Status codes for username/group/alias uniqueness
+    const STATUS_ALIAS_EXISTS = 'alias';
+    const STATUS_GROUP_EXISTS = 'group';
+    const STATUS_USERNAME_EXISTS = 'user';
+    const STATUS_UNIQUE = 'unique';
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
@@ -113,6 +119,7 @@ class Accounts_Driver extends Accounts_Engine
     protected $config = NULL;
     protected $modes = NULL;
     protected $extensions = array();
+    protected $reserved_ids = array('root', 'manager', 'administrator');
 
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
@@ -293,6 +300,131 @@ class Accounts_Driver extends Accounts_Engine
             $status = Accounts_Engine::STATUS_OFFLINE;
 
         return $status;
+    }
+
+    /**
+     * Check for reserved usernames, groups and aliases in the directory.
+     *
+     * @param string $id username, group or alias
+     *
+     * @return boolean TRUE if ID is reserved
+     */
+
+    public function is_reserved_id($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (in_array($id, $this->reserved_ids))
+            return TRUE;
+        else
+            return FALSE;
+    }
+
+    /**
+     * Check for reserved usernames, groups and aliases in the directory.
+     *
+     * @param string $id username, group or alias
+     *
+     * @return string warning message if ID is reserved
+     */
+
+    public function is_reserved_id_message($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->is_reserved_id($id))
+            return lang('openldap_directory_reserved_for_system_use');
+        else
+            return '';
+    }
+
+    /**
+     * Check for overlapping usernames, groups and aliases in the directory.
+     *
+     * @param string $id username, group or alias
+     *
+     * @return string warning type if ID is not unique
+     */
+
+    public function is_unique_id($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
+
+        // Check for duplicate user
+        //-------------------------
+
+        $result = $this->ldaph->search(
+            "(&(objectclass=inetOrgPerson)(uid=$id))",
+            OpenLDAP::get_users_container(),
+            array('dn')
+        );
+
+        $entry = $this->ldaph->get_first_entry($result);
+
+        if ($entry)
+            return self::STATUS_USERNAME_EXISTS;
+
+        // Check for duplicate alias
+        //--------------------------
+
+        $result = $this->ldaph->search(
+            "(&(objectclass=inetOrgPerson)(clearMailAliases=$id))",
+            OpenLDAP::get_users_container(),
+            array('dn')
+        );
+
+        $entry = $this->ldaph->get_first_entry($result);
+
+        if ($entry)
+            return self::STATUS_ALIAS_EXISTS;
+
+        // Check for duplicate group
+        //--------------------------
+    
+        // The "displayName" is used in Samba group mapping.  In other words,
+        // the "displayName" is what is used by Windows networking (not the cn).
+
+        $result = $this->ldaph->search(
+            "(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
+            OpenLDAP::get_groups_container(),
+            array('dn')
+        );
+
+        $entry = $this->ldaph->get_first_entry($result);
+
+        if ($entry)
+            return self::STATUS_GROUP_EXISTS;
+
+        // TODO: Flexshares?  How do we deal with this in master/replica mode?
+
+        return self::STATUS_UNIQUE;
+    }
+
+    /**
+     * Check for overlapping usernames, groups and aliases in the directory.
+     *
+     * @param string $id username, group or alias
+     *
+     * @return string warning message if ID is not unique
+     */
+
+    public function is_unique_id_message($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $status = $this->is_unique_id($id);
+
+        if ($status === self::STATUS_USERNAME_EXISTS)
+            return lang('openldap_directory_username_with_this_name_exists');
+        else if ($status === self::STATUS_ALIAS_EXISTS)
+            return lang('openldap_directory_alias_with_this_name_exists');
+        else if ($status === self::STATUS_GROUP_EXISTS)
+            return lang('openldap_directory_group_with_this_name_exists');
+        else
+            return '';
     }
 
     /**

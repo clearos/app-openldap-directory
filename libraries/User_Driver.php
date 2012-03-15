@@ -144,7 +144,6 @@ class User_Driver extends User_Engine
     protected $core_classes = array();
     protected $attribute_map = array();
     protected $info_map = array();
-    protected $reserved_usernames = array('root', 'manager');
     protected $plugins = array();
     protected $extensions = array();
 
@@ -885,14 +884,17 @@ class User_Driver extends User_Engine
         if (!preg_match("/^([a-z0-9_\-\.\$]+)$/", $username))
             return lang('users_username_invalid');
 
-        if ($check_reserved && in_array($username, $this->reserved_usernames))
-            return lang('users_username_is_reserved');
+        if ($check_reserved) {
+            $accounts = new Accounts_Driver();
+
+            if ($message = $accounts->is_reserved_id_message($username))
+                return $message;
+        }
 
         if ($check_uniqueness) {
-            $openldap = new OpenLDAP();
-            $message = $openldap->check_uniqueness_message($username);
+            $accounts = new Accounts_Driver();
 
-            if ($message)
+            if ($message = $accounts->is_unique_id_message($username))
                 return $message;
         }
     }

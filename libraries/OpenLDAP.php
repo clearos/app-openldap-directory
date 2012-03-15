@@ -142,12 +142,6 @@ class OpenLDAP extends Engine
     const CN_MASTER = 'cn=Master';
     const DRIVER_NAME = 'openldap_directory';
 
-    // Status codes for username/group/alias uniqueness
-    const STATUS_ALIAS_EXISTS = 'alias';
-    const STATUS_GROUP_EXISTS = 'group';
-    const STATUS_USERNAME_EXISTS = 'user';
-    const STATUS_UNIQUE = 'unique';
-
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
     ///////////////////////////////////////////////////////////////////////////////
@@ -165,95 +159,6 @@ class OpenLDAP extends Engine
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
-    }
-
-    /**
-     * Check for overlapping usernames, groups and aliases in the directory.
-     *
-     * @param string $id username, group or alias
-     *
-     * @return string warning type if ID is not unique
-     */
-
-    public function check_uniqueness($id)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph === NULL)
-            $this->ldaph = Utilities::get_ldap_handle();
-
-        // Check for duplicate user
-        //-------------------------
-
-        $result = $this->ldaph->search(
-            "(&(objectclass=inetOrgPerson)(uid=$id))",
-            self::get_users_container(),
-            array('dn')
-        );
-
-        $entry = $this->ldaph->get_first_entry($result);
-
-        if ($entry)
-            return self::STATUS_USERNAME_EXISTS;
-
-        // Check for duplicate alias
-        //--------------------------
-
-        $result = $this->ldaph->search(
-            "(&(objectclass=inetOrgPerson)(clearMailAliases=$id))",
-            self::get_users_container(),
-            array('dn')
-        );
-
-        $entry = $this->ldaph->get_first_entry($result);
-
-        if ($entry)
-            return self::STATUS_ALIAS_EXISTS;
-
-        // Check for duplicate group
-        //--------------------------
-    
-        // The "displayName" is used in Samba group mapping.  In other words,
-        // the "displayName" is what is used by Windows networking (not the cn).
-
-        $result = $this->ldaph->search(
-            "(&(objectclass=posixGroup)(|(cn=$id)(displayName=$id)))",
-            self::get_groups_container(),
-            array('dn')
-        );
-
-        $entry = $this->ldaph->get_first_entry($result);
-
-        if ($entry)
-            return self::STATUS_GROUP_EXISTS;
-
-        // TODO: Flexshares?  How do we deal with this in master/replica mode?
-
-        return self::STATUS_UNIQUE;
-    }
-
-    /**
-     * Check for overlapping usernames, groups and aliases in the directory.
-     *
-     * @param string $id username, group or alias
-     *
-     * @return string warning message if ID is not unique
-     */
-
-    public function check_uniqueness_message($id)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $status = $this->check_uniqueness($id);
-
-        if ($status === self::STATUS_USERNAME_EXISTS)
-            return lang('openldap_directory_username_with_this_name_exists');
-        else if ($status === self::STATUS_ALIAS_EXISTS)
-            return lang('openldap_directory_alias_with_this_name_exists');
-        else if ($status === self::STATUS_GROUP_EXISTS)
-            return lang('openldap_directory_group_with_this_name_exists');
-        else
-            return '';
     }
 
     /** 

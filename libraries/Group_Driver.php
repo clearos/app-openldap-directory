@@ -55,7 +55,6 @@ clearos_load_language('groups');
 // Classes
 //--------
 
-use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group_Engine as Group_Engine;
 use \clearos\apps\ldap\LDAP_Client as LDAP_Client;
@@ -65,7 +64,6 @@ use \clearos\apps\openldap_directory\User_Manager_Driver as User_Manager_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
 
-clearos_load_library('accounts/Nscd');
 clearos_load_library('base/File');
 clearos_load_library('groups/Group_Engine');
 clearos_load_library('ldap/LDAP_Client');
@@ -200,7 +198,7 @@ class Group_Driver extends Group_Engine
         // Validate
         //---------
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         if ($this->exists()) {
             $info = $this->_load_group_info();
@@ -217,8 +215,8 @@ class Group_Driver extends Group_Engine
             throw new Validation_Exception($warning);
         }
 
-        $openldap = new OpenLDAP();
-        $unique_warning = $openldap->check_uniqueness_message($this->group_name);
+        $accounts = new Accounts_Driver();
+        $unique_warning = $accounts->is_unique_id_message($this->group_name);
 
         if ($unique_warning)
             throw new Validation_Exception($unique_warning);
@@ -285,7 +283,7 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         $members = $this->get_members();
 
@@ -312,7 +310,7 @@ class Group_Driver extends Group_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         // TODO -- it would be nice to check to see if group is still in use
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         if (! $this->exists())
             throw new Group_Not_Found_Exception();
@@ -340,7 +338,7 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         $members = $this->get_members();
 
@@ -395,7 +393,7 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         $info = $this->_load_group_info();
 
@@ -413,7 +411,7 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         $info = $this->_load_group_info();
 
@@ -433,7 +431,7 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         $info = $this->_load_group_info();
 
@@ -451,7 +449,7 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         $info = $this->_load_group_info();
 
@@ -525,7 +523,7 @@ class Group_Driver extends Group_Engine
         //---------
 
         Validation_Exception::is_valid($this->validate_description($description));
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         if (! $this->exists())
             throw new Group_Not_Found_Exception();
@@ -561,7 +559,7 @@ class Group_Driver extends Group_Engine
         // Validate
         //---------
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         if (! $this->exists())
             throw new Group_Not_Found_Exception();
@@ -622,7 +620,7 @@ class Group_Driver extends Group_Engine
         // Validate
         //---------
 
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name));
+        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
         // Validation_Exception::is_valid($this->validate_group_info($group_info));
 
         // User does not exist error
@@ -683,19 +681,33 @@ class Group_Driver extends Group_Engine
     /**
      * Validation routine for group name.
      *
-     * Groups must begin with a letter and allow underscores.
+     * @param string  $group_name       group name
+     * @param boolean $check_uniqueness check for uniqueness
+     * @param boolean $check_reserved   check for reserved IDs
      *
-     * @param string $group_name group name
-     *
-     * @return boolean error message if group name is invalid
+     * @return string error message if group name is invalid
      */
 
-    public function validate_group_name($group_name)
+    public function validate_group_name($group_name, $check_uniqueness = TRUE, $check_reserved = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         if (! preg_match('/^([a-zA-Z]+[0-9a-zA-Z\.\-_\s]*)$/', $group_name))
             return lang('groups_group_name_invalid');
+
+        if ($check_reserved) {
+            $accounts = new Accounts_Driver();
+
+            if ($message = $accounts->is_reserved_id_message($group_name))
+                return $message;
+        }
+
+        if ($check_uniqueness) {
+            $accounts = new Accounts_Driver();
+
+            if ($message = $accounts->is_unique_id_message($group_name))
+                return $message;
+        }
     }
 
     ///////////////////////////////////////////////////////////////////////////////
