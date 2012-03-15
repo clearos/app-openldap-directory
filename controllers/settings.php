@@ -84,7 +84,6 @@ class Settings extends ClearOS_Controller
         // Load libraries
         //---------------
 
-        $this->load->library('openldap/LDAP_Driver');
         $this->load->library('openldap_directory/OpenLDAP');
 
         // Handle form submit
@@ -98,7 +97,7 @@ class Settings extends ClearOS_Controller
             if ($action === 'initialize')
                 $this->openldap->initialize($this->input->post('domain'));
             else
-                $this->ldap_driver->set_base_internet_domain($this->input->post('domain'));
+                $this->openldap->set_base_internet_domain($this->input->post('domain'));
 
             echo json_encode(array('code' => 0));
         } catch (Exception $e) {
