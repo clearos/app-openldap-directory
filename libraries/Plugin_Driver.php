@@ -106,7 +106,7 @@ class Plugin_Driver extends Engine
     /**
      * Adds a plugin to the system.
      *
-     * @param string $description group description
+     * @param array $members plugin members
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception
@@ -118,7 +118,12 @@ class Plugin_Driver extends Engine
 
         $group = new Group_Driver($this->plugin_name);
 
-        $group->add($description, $members);
+        if (! $group->exists()) {
+            $openldap = new OpenLDAP();
+            $openldap->initialize_plugin_groups();
+        }
+
+        $group->set_members($members);
     }
 
     /**
@@ -136,12 +141,10 @@ class Plugin_Driver extends Engine
 
         $group = new Group_Driver($this->plugin_name);
 
-        if (! $group->exists()) {
-            $openldap = new OpenLDAP();
-            $openldap->initialize_plugin_groups();
-        }
-
-        $group->add_member($username);
+        if (! $group->exists())
+            $this->add(array($username));
+        else
+            $group->add_member($username);
     }
 
     /**
@@ -290,7 +293,7 @@ class Plugin_Driver extends Engine
     /**
      * Validation routine for plugin description.
      *
-     * @param string description
+     * @param string $description description
      *
      * @return string error message description is invalid
      */
