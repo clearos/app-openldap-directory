@@ -872,7 +872,7 @@ class User_Driver extends User_Engine
      *
      * @param string  $username         username
      * @param boolean $check_uniqueness check for uniqueness
-     * @param boolean $allow_reserved   check for reserved usernames
+     * @param boolean $check_reserved   check for reserved usernames
      *
      * @return string error message if username is invalid
      */

@@ -341,12 +341,13 @@ class Accounts_Driver extends Accounts_Engine
     /**
      * Check for overlapping usernames, groups and aliases in the directory.
      *
-     * @param string $id username, group or alias
+     * @param string $id                     username, group or alias
+     * @param string $ignore_aliases_for_uid ignore aliases for given uid
      *
      * @return string warning type if ID is not unique
      */
 
-    public function is_unique_id($id)
+    public function is_unique_id($id, $ignore_aliases_for_uid = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -370,8 +371,10 @@ class Accounts_Driver extends Accounts_Engine
         // Check for duplicate alias
         //--------------------------
 
+        $filter = is_null($ignore_aliases_for_uid) ? '' : "(!(uid=$ignore_aliases_for_uid))";
+
         $result = $this->ldaph->search(
-            "(&(objectclass=inetOrgPerson)(clearMailAliases=$id))",
+            "(&(objectclass=inetOrgPerson)(clearMailAliases=$id)$filter)",
             OpenLDAP::get_users_container(),
             array('dn')
         );
@@ -406,16 +409,17 @@ class Accounts_Driver extends Accounts_Engine
     /**
      * Check for overlapping usernames, groups and aliases in the directory.
      *
-     * @param string $id username, group or alias
+     * @param string $id                     username, group or alias
+     * @param string $ignore_aliases_for_uid ignore aliases for given uid
      *
      * @return string warning message if ID is not unique
      */
 
-    public function is_unique_id_message($id)
+    public function is_unique_id_message($id, $ignore_aliases_for_uid = NULL)
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $status = $this->is_unique_id($id);
+        $status = $this->is_unique_id($id, $ignore_aliases_for_uid);
 
         if ($status === self::STATUS_USERNAME_EXISTS)
             return lang('openldap_directory_username_with_this_name_exists');
@@ -442,7 +446,11 @@ class Accounts_Driver extends Accounts_Engine
 
         try {
             $nslcd = new Nslcd();
-            $nslcd->reset();
+
+            if ($nslcd->get_running_state())
+                $nslcd->reset();
+            else
+                $nslcd->set_running_state(TRUE);
         } catch (Engine_Exception $e) {
             // Not fatal.
         }

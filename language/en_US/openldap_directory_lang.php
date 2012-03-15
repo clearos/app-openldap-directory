@@ -26,3 +26,4 @@ $lang['openldap_directory_group_with_this_name_exists'] = 'Group with this name 
 $lang['openldap_directory_alias_with_this_name_exists'] = 'Alias with this name already exists.';
 $lang['openldap_directory_importing_data'] = 'Importing data.';
 $lang['openldap_directory_initialize_help'] = 'When initializing your Directory Server, please select the base domain that you use for your organization.  This domain is used for authentication and other system services.';
+$lang['openldap_directory_reserved_for_system_use'] = 'Reserved for system use.';

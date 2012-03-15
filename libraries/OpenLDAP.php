@@ -359,8 +359,13 @@ class OpenLDAP extends Engine
             // Post LDAP tasks
             //----------------
 
+            clearos_log('openldap_directory', 'initializing authconfig');
             $this->_initialize_authconfig();
+
+            clearos_log('openldap_directory', 'cleaning up shadow system');
             $this->_remove_overlaps();
+
+            clearos_log('openldap_directory', 'initializing caching');
             $this->_initialize_caching();
         } catch (Exception $e) {
             $file->delete();
@@ -368,8 +373,10 @@ class OpenLDAP extends Engine
         }
 
         try {
-            if ($mode !== Mode_Engine::MODE_SLAVE)
+            if ($mode !== Mode_Engine::MODE_SLAVE) {
+                clearos_log('openldap_directory', 'initializing plugin groups');
                 $this->initialize_plugin_groups();
+            }
         } catch (Exception $e) {
             // Not fatal
         }
