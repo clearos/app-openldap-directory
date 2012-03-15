@@ -55,20 +55,18 @@ require_once $bootstrap . '/bootstrap.php';
 // Classes
 //--------
 
-use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
 use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
-use \clearos\apps\accounts\Nslcd as Nslcd;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\ldap\Nslcd as Nslcd;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
-clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('accounts/Accounts_Engine');
-clearos_load_library('accounts/Nslcd');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
+clearos_load_library('ldap/Nslcd');
 clearos_load_library('openldap/LDAP_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/Utilities');
