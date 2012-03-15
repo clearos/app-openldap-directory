@@ -57,28 +57,34 @@ clearos_load_language('openldap_directory');
 //--------
 
 use \clearos\apps\accounts\Accounts_Configuration as Accounts_Configuration;
-use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
 use \clearos\apps\accounts\Nscd as Nscd;
-use \clearos\apps\accounts\Nslcd as Nslcd;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
+use \clearos\apps\base\Folder as Folder;
 use \clearos\apps\base\Shell as Shell;
+use \clearos\apps\ldap\Nslcd as Nslcd;
 use \clearos\apps\mode\Mode_Engine as Mode_Engine;
 use \clearos\apps\mode\Mode_Factory as Mode_Factory;
+use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
+use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
+use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('accounts/Accounts_Configuration');
-clearos_load_library('accounts/Accounts_Engine');
 clearos_load_library('accounts/Nscd');
-clearos_load_library('accounts/Nslcd');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
+clearos_load_library('base/Folder');
 clearos_load_library('base/Shell');
+clearos_load_library('ldap/Nslcd');
 clearos_load_library('mode/Mode_Engine');
 clearos_load_library('mode/Mode_Factory');
+clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap/LDAP_Driver');
+clearos_load_library('openldap_directory/Accounts_Driver');
+clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
 
@@ -86,11 +92,11 @@ clearos_load_library('openldap_directory/Utilities');
 //-----------
 
 use \Exception as Exception;
-use \clearos\apps\accounts\Accounts_Driver_Not_Set_Exception as Accounts_Driver_Not_Set_Exception;
 use \clearos\apps\base\Engine_Exception as Engine_Exception;
+use \clearos\apps\base\Validation_Exception as Validation_Exception;
 
-clearos_load_library('accounts/Accounts_Driver_Not_Set_Exception');
 clearos_load_library('base/Engine_Exception');
+clearos_load_library('base/Validation_Exception');
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -432,10 +438,18 @@ class OpenLDAP extends Engine
             $sysmode = Mode_Factory::create();
             $mode = $sysmode->get_mode();
 
-            if ($mode === Mode_Engine::MODE_MASTER)
-                $ldap->initialize_master($domain, NULL, $force);
-            else if ($mode === Mode_Engine::MODE_STANDALONE)
-                $ldap->initialize_standalone($domain, NULL, $force);
+            if ($mode === Mode_Engine::MODE_MASTER) {
+                if ($ldap->is_initialized())
+                    $ldap->set_base_internet_domain($domain);
+                else
+                    $ldap->initialize_master($domain, NULL, $force);
+
+            } else if ($mode === Mode_Engine::MODE_STANDALONE) {
+                if ($ldap->is_initialized())
+                    $ldap->set_base_internet_domain($domain);
+                else
+                    $ldap->initialize_standalone($domain, NULL, $force);
+            }
 
             // Post LDAP tasks
             //----------------
@@ -507,8 +521,10 @@ class OpenLDAP extends Engine
                 $plugin_group = $plugin . '_plugin'; // TODO: hard coded value
                 $group = new Group_Driver($plugin_group);
 
-                if (! $group->exists())
-                    $group->add($details['name']);
+                if (! $group->exists()) {
+                    $info['core']['description'] = $details['name'];
+                    $group->add($info);
+                }
             }
         } catch (Exception $e) {
             $last_exception = $e;
@@ -518,9 +534,60 @@ class OpenLDAP extends Engine
             throw new Engine_Exception(clearos_exception_message($last_exception));
     }
 
+    /**
+     * Changes base domain used in directory
+     *
+     * @param string $domain domain
+     *
+     * @return void
+     */
+
+    public function set_base_internet_domain($domain)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_domain($domain));
+
+        // Use the underlying LDAP driver to do most of the work
+        //------------------------------------------------------
+
+        $ldap = new LDAP_Driver();
+        $ldap->set_base_internet_domain($domain);
+
+        // Restart nscd
+        //-------------
+
+        try {
+            $nscd = new Nscd();
+
+            if ($nscd->get_running_state())
+                $nscd->restart();
+            else
+                $nscd->set_running_state(TRUE);
+        } catch (Exception $e) {
+            // Not fatal
+        }
+    }
+
     ///////////////////////////////////////////////////////////////////////////////
     // V A L I D A T I O N
     ///////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Validates domain.
+     *
+     * @param string $domain domain
+     *
+     * @return string error message if domain is invalid
+     */
+
+    public function validate_domain($domain)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (! Network_Utils::is_valid_domain($domain))
+            return lang('ldap_domain_invalid');
+    }
 
     /**
      * Validates ID.
