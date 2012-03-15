@@ -404,7 +404,7 @@ class User_Driver extends User_Engine
         $group_list = array();
 
         foreach ($groups_info as $group_name => $group_details) {
-            if (in_array($this->username, $group_details['members']))
+            if (in_array($this->username, $group_details['core']['members']))
                 $group_list[] = $group_name;
         }
 
@@ -731,7 +731,6 @@ class User_Driver extends User_Engine
 
         Validation_Exception::is_valid($this->validate_username($this->username, FALSE, FALSE));
         Validation_Exception::is_valid($this->validate_user_info($user_info));
-        // FIXME: acl
 
         // User does not exist error
         //--------------------------
