@@ -195,6 +195,11 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
+        // Only lower case groups can be added
+        //------------------------------------
+
+        $this->group_name = strtolower($this->group_name );
+
         // Validate
         //---------
 
