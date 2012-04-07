@@ -1,4 +1,12 @@
 #!/bin/sh
 
 # Restart webconfig due to LDAP library
+#--------------------------------------
+
 /usr/sbin/webconfig-restart
+
+# Reload clearsyncd
+#------------------
+
+/sbin/service clearsyncd condrestart >/dev/null 2>&1
+
