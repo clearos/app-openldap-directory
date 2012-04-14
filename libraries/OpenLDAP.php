@@ -128,7 +128,6 @@ class OpenLDAP extends Engine
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
     const COMMAND_SLAPCAT = '/usr/sbin/slapcat';
     const FILE_INITIALIZING = '/var/clearos/openldap_directory/initializing';
-    const FILE_LDIF_BACKUP = '/etc/openldap/backup.ldif';
     const PATH_LDAP_BACKUP = '/var/clearos/openldap_directory/backup/';
     const PATH_LDAP = '/var/lib/ldap';
 
@@ -275,26 +274,6 @@ class OpenLDAP extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         return self::SUFFIX_USERS . ',' . self::get_base_dn();
-    }
-
-    /**
-     * Imports backup LDAP database from LDIF.
-     *
-     * @return boolean true if import file exists
-     */
-
-    public function import()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $import = new File(self::FILE_LDIF_BACKUP, true);
-
-        if (! $import->exists())
-            return FALSE;
-
-        $this->_import_ldif(self::FILE_LDIF_BACKUP);
-
-        return TRUE;
     }
 
     /**
