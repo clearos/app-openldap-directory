@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory
 Epoch: 1
-Version: 1.0.10
+Version: 1.1.0
 Release: 1%{dist}
 Summary: Directory Server
 License: GPLv3
@@ -18,7 +18,7 @@ Obsoletes: app-directory-server
 The Directory Server provides information on users, groups and systems.  You can provide read only access to your directory to integrate third party applications both locally and in the cloud.
 
 %package core
-Summary: Directory Server - APIs and install
+Summary: Directory Server - Core
 License: LGPLv3
 Group: ClearOS/Libraries
 Provides: system-accounts
