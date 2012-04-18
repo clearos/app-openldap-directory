@@ -69,7 +69,7 @@ $(document).ready(function() {
     // Run connection attempt
     //-----------------------
 
-    if ($("#validated_action").val().length != 0) {
+    if ($("#validated_action").val() && ($("#validated_action").val().length != 0)) {
         $("#infoboxes").show();
         $("#initializing_status").html('<div class="theme-loading-normal">' + lang_busy + '</div>');
         $("#initializing_box").show();
