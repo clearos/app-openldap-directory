@@ -398,8 +398,12 @@ class Utilities extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $nscd = new Nscd();                             
-        $nscd->clear_cache();
+        try {
+            $nscd = new Nscd();                             
+            $nscd->clear_cache();
+        } catch (\Exception $e) {
+            // Not fatal
+        }
 
         $file = new File(self::FILE_TRANSACTION_LOG);
 
