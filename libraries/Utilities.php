@@ -190,6 +190,8 @@ class Utilities extends Engine
                         if (!empty($item))
                             $string_array[] = $item;
                     }
+                } else {
+                    $string_array == NULL;
                 }
 
                 // Delete
@@ -399,7 +401,7 @@ class Utilities extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         try {
-            $nscd = new Nscd();                             
+            $nscd = new Nscd();
             $nscd->clear_cache();
         } catch (\Exception $e) {
             // Not fatal
