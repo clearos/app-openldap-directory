@@ -191,7 +191,7 @@ class Utilities extends Engine
                             $string_array[] = $item;
                     }
                 } else {
-                    $string_array == NULL;
+                    $string_array = NULL;
                 }
 
                 // Delete
