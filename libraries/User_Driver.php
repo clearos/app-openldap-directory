@@ -579,6 +579,29 @@ class User_Driver extends User_Engine
     }
 
     /**
+     * Sets group memberships.
+     *
+     * @param array $groups groups
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public function set_group_memberships($groups)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        foreach ($groups as $group => $state) {
+            $group = new Group_Driver($group);
+
+            if ($state)
+                $group->add_member($this->username);
+            else
+                $group->delete_member($this->username);
+        }
+    }
+
+    /**
      * Sets the password for the user.
      *
      * Ignore the include_samba flag,  It is a workaround required for password
