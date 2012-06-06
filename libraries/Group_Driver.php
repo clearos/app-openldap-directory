@@ -637,6 +637,8 @@ class Group_Driver extends Group_Engine
         // Convert user info to LDAP object
         //---------------------------------
 
+        $group_info['core']['group_name'] = $this->group_name; // Extensions may need this info
+
         $ldap_object = $this->_convert_group_array_to_attributes($group_info, TRUE);
 
         // Update LDAP attributes from extensions
