@@ -165,8 +165,9 @@ class Utilities extends Engine
      * an error.  In this case, leaving the LDAP object item undefined
      * is the correct behavior.
      *
-     * @param string $array   hash array
-     * @param string $mapping attribute to array mapping information
+     * @param string  $array     hash array
+     * @param string  $mapping   attribute to array mapping information
+     * @param boolean $is_modify modify flag
      *
      * @return array LDAP attributes
      */
@@ -194,13 +195,13 @@ class Utilities extends Engine
                     $string_array = NULL;
                 }
 
-                // Delete
                 if (($value === NULL) || ($value === '') || (isset($string_array) && is_array($string_array) && empty($string_array))) {
+                    // Delete
                     if ($is_modify)
                         $ldap_object[$attribute] = array();
 
-                // Add/modify
                 } else {
+                    // Add/modify
                     if ($mapping[$info]['type'] == 'boolean') {
                         $ldap_object[$attribute] = ($value) ? 'TRUE' : 'FALSE';
                     } else if ($mapping[$info]['type'] == 'string_array') {
@@ -252,7 +253,6 @@ class Utilities extends Engine
      * usernames, this method is used to create two hash arrays to map
      * the usernames and DNs.
      *
-     * @access private
      * @return void
      */
 
@@ -291,6 +291,7 @@ class Utilities extends Engine
      * Handles running various hooks in an extension
      *
      * @param array $details extension details
+     *
      * @return object extension object
      */
 
@@ -311,6 +312,7 @@ class Utilities extends Engine
      * Loads group extension.
      *
      * @param array $details extension details
+     *
      * @return object extension object
      */
 

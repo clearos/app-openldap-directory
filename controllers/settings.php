@@ -65,10 +65,24 @@ class Settings extends ClearOS_Controller
         $this->_item('view');
     }
 
+    /**
+     * Edit view
+     *
+     * @return view
+     */
+
     function edit()
     {
         $this->_item('edit');
     }
+
+    /**
+     * View view
+     *
+     * @param string $action action
+     *
+     * @return view
+     */
 
     function view($action)
     {
@@ -77,6 +91,10 @@ class Settings extends ClearOS_Controller
 
     /**
      * Updates domain.
+     *
+     * @param string $action action
+     *
+     * @return view
      */
 
     function action($action)
@@ -104,6 +122,14 @@ class Settings extends ClearOS_Controller
             echo json_encode(array('code' => clearos_exception_code($e), 'error_message' => clearos_exception_message($e)));
         }
     }
+
+    /**
+     * Common form handler
+     *
+     * @param string $form_type form type
+     *
+     * @return view
+     */
 
     function _item($form_type)
     {

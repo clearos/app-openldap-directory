@@ -174,34 +174,6 @@ class Group_Manager_Driver extends Engine
     }
 
     /**
-     * Returns the list of groups for given username.
-     *
-     * @param string  $username username
-     * @param integer $filter   filter for specific groups
-     *
-     * @return array a list of groups
-     * @throws Engine_Exception
-     */
-
-/*
-    public function get_group_memberships($username, $filter = Group_Engine::FILTER_DEFAULT)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $groups_info = $this->_get_details($filter);
-
-        $group_list = array();
-
-        foreach ($groups_info as $group_name => $group_details) {
-            if (in_array($username, $group_details['core']['members']))
-                $group_list[] = $group_name;
-        }
-
-        return $group_list;
-    }
-*/
-
-    /**
      * Updates group membership for given user.
      *
      * This method does not change the settings in built-in groups.
@@ -229,7 +201,7 @@ class Group_Manager_Driver extends Engine
             }
         }
 
-        $this->_signal_transaction(lang('groups_updated_group_membership'));
+        $this->_signal_transaction(lang('accounts_updated_group_membership'));
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -267,7 +239,6 @@ class Group_Manager_Driver extends Engine
      *
      * @param string $filter group filter
      *
-     * @access private
      * @throws Engine_Exception
      * @return array group information
      */
@@ -349,9 +320,9 @@ class Group_Manager_Driver extends Engine
                 || (($filter === Group_Engine::FILTER_WINDOWS) && ($group_info['core']['type'] === Group_Engine::TYPE_WINDOWS))
                 || (($filter === Group_Engine::FILTER_PLUGIN) && ($group_info['core']['type'] === Group_Engine::TYPE_PLUGIN))
                 || (($filter === Group_Engine::FILTER_DEFAULT) 
-                    && (($group_info['core']['type'] === Group_Engine::TYPE_NORMAL) 
-                    || ($group_info['core']['type'] === Group_Engine::TYPE_BUILTIN)))
-                )
+                && (($group_info['core']['type'] === Group_Engine::TYPE_NORMAL) 
+                || ($group_info['core']['type'] === Group_Engine::TYPE_BUILTIN)))
+            )
                 $group_list[$group_info['core']['group_name']] = $group_info;
 
             $entry = $this->ldaph->next_entry($entry);
@@ -363,7 +334,6 @@ class Group_Manager_Driver extends Engine
     /**
      * Loads groups from Posix.
      *
-     * @access private
      * @return array group information
      * @throws Engine_Exception
      */
@@ -399,9 +369,8 @@ class Group_Manager_Driver extends Engine
     /**
      * Signals a group transaction.
      *
-     * @param string $action description of the transaction
+     * @param string $transaction description of the transaction
      *
-     * @access private
      * @return void
      */
 

@@ -198,7 +198,7 @@ class Group_Driver extends Group_Engine
         // Only lower case groups can be added
         //------------------------------------
 
-        $this->group_name = strtolower($this->group_name );
+        $this->group_name = strtolower($this->group_name);
 
         // Validate
         //---------
@@ -272,7 +272,7 @@ class Group_Driver extends Group_Engine
 
         $this->ldaph->add($dn, $ldap_object);
 
-        $this->_signal_transaction(lang('groups_added_group'));
+        $this->_signal_transaction(lang('accounts_added_group'));
     }
 
     /**
@@ -300,7 +300,7 @@ class Group_Driver extends Group_Engine
             return TRUE;
         }
 
-        $this->_signal_transaction(lang('groups_added_member_to_group'));
+        $this->_signal_transaction(lang('accounts_added_member_to_group'));
     }
 
     /**
@@ -327,7 +327,7 @@ class Group_Driver extends Group_Engine
 
         $this->ldaph->delete($dn);
 
-        $this->_signal_transaction(lang('groups_deleted_group'));
+        $this->_signal_transaction(lang('accounts_deleted_group'));
     }
 
     /**
@@ -361,12 +361,11 @@ class Group_Driver extends Group_Engine
             return FALSE;
         }
 
-        $this->_signal_transaction(lang('groups_deleted_member'));
+        $this->_signal_transaction(lang('accounts_deleted_member'));
     }
 
     /**
      * Checks the existence of the group.
-     *
      *
      * @return boolean TRUE if group exists
      * @throws Engine_Exception
@@ -545,7 +544,7 @@ class Group_Driver extends Group_Engine
 
         $this->ldaph->modify($dn, $attributes);
 
-        $this->_signal_transaction(lang('groups_updated_group_information'));
+        $this->_signal_transaction(lang('accounts_updated_group_information'));
     }
 
     /**
@@ -603,7 +602,7 @@ class Group_Driver extends Group_Engine
 
         $this->ldaph->modify($dn, $attributes);
 
-        $this->_signal_transaction(lang('groups_updated_group_membership'));
+        $this->_signal_transaction(lang('accounts_updated_group_membership'));
     }
 
     /**
@@ -662,7 +661,7 @@ class Group_Driver extends Group_Engine
         // Ping the synchronizer
         //----------------------
 
-        $this->_signal_transaction(lang('groups_updated_group_information'));
+        $this->_signal_transaction(lang('accounts_updated_group_information'));
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -672,7 +671,7 @@ class Group_Driver extends Group_Engine
     /**
      * Validation routine for group description.
      *
-     * @param string description
+     * @param string $description description
      *
      * @return string error message description is invalid
      */
@@ -727,9 +726,9 @@ class Group_Driver extends Group_Engine
      * This method does not validate the uniqueness of the group name.
      *
      * @param string $description group description
+     * @param string $gid_number  GID number
      * @param array  $members     member list
      *
-     * @access private
      * @return void
      * @throws Validation_Exception, Engine_Exception
      */
@@ -747,7 +746,6 @@ class Group_Driver extends Group_Engine
         // Convert array into LDAP object
         //-------------------------------
 
-        // $info['gid_number'] = $this->_get_next_gid_number();
         $info['core']['gid_number'] = $gid_number;
         $info['core']['description'] = $description;
         $info['core']['group_name'] = $this->group_name;
@@ -791,6 +789,11 @@ class Group_Driver extends Group_Engine
 
     /**
      * Runs add_attributes hook in extensions.
+     *
+     * @param array $group_info  group information
+     * @param array $ldap_object LDAP attributes
+     *
+     * @return void
      */
 
     protected function _add_attributes_hook($group_info, $ldap_object)
@@ -815,14 +818,14 @@ class Group_Driver extends Group_Engine
      * The GroupManager class uses this method.  However, we do not want this
      * method to appear in the API documentation since it is really only for
      * internal use.
-     *
-     * @access private
+     * 
+     * @param array $group_info group information
      *
      * @return group information in an LDAP attributes format
      * @throws Engine_Exception
      */
 
-    public function _convert_group_array_to_attributes($group_info)
+    protected function _convert_group_array_to_attributes($group_info)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -857,55 +860,8 @@ class Group_Driver extends Group_Engine
     }
 
     /**
-     * Converts LDAP attribute array into a regular array.
-     *
-     * The GroupManager class uses this method.  However, we do not want this
-     * method to appear in the API documentation since it is really only for
-     * internal use.
-     *
-     * @access private
-     *
-     * @return group information in an array
-     * @throws Engine_Exception
-     */
-
-/*
-    public function _convert_ldap_attributes_to_array($attributes)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $group_info = array();
-
-        $group_info['gid'] = $attributes['gidNumber'][0];
-        $group_info['group'] = $attributes['cn'][0];
-        $group_info['description'] = $attributes['description'][0];
-        $group_info['members'] = array();
-
-        // TODO - move to extension
-        if (isset($attributes['sambaSID'][0]))
-            $group_info['sambaSID'] = $attributes['sambaSID'][0];
-
-        // Convert RFC2307BIS CN member list to username member list
-
-        $rawmembers = $attributes['member'];
-        array_shift($rawmembers);
-
-        if ($this->usermap_dn == NULL)
-            $this->_load_usermap_from_ldap();
-
-        foreach ($rawmembers as $membercn) {
-            if (!empty($this->usermap_dn[$membercn]))
-                $group_info['members'][] = $this->usermap_dn[$membercn];
-        }
-
-        return $group_info;
-    }
-*/
-
-    /**
      * Returns extension list.
      *
-     * @access private
      * @return array extension list
      */
 
@@ -926,13 +882,11 @@ class Group_Driver extends Group_Engine
     /**
      * Returns the next available group ID.
      *
-     * @access private
-     *
      * @return string next available group Id
      * @throws Engine_Exception
      */
 
-    public function _get_next_gid_number()
+    protected function _get_next_gid_number()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -956,7 +910,6 @@ class Group_Driver extends Group_Engine
     /**
      * Loads group information from LDAP.
      *
-     * @access private
      * @return void
      * @throws Engine_Exception
      */
@@ -1033,7 +986,6 @@ class Group_Driver extends Group_Engine
     /**
      * Loads group from Posix.
      *
-     * @access private
      * @return void
      * @throws Engine_Exception
      */
@@ -1079,8 +1031,6 @@ class Group_Driver extends Group_Engine
      * This method loads group information from LDAP if the group exists,
      * otherwise, group information is loaded from /etc/groups.
      *
-     * @access private
-     *
      * @return void
      * @throws Group_Not_Found_Exception, Engine_Exception
      */
@@ -1112,7 +1062,6 @@ class Group_Driver extends Group_Engine
      * usernames, this method is used to create two hash arrays to map
      * the usernames and DNs.
      *
-     * @access private
      * @return void
      */
 
@@ -1149,9 +1098,8 @@ class Group_Driver extends Group_Engine
     /**
      * Signals a group transaction.
      *
-     * @param string $action description of the transaction
+     * @param string $transaction description of the transaction
      *
-     * @access private
      * @return void
      */
 

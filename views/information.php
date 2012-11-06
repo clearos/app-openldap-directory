@@ -34,6 +34,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 $this->lang->load('openldap_directory');
+$this->lang->load('users');
+$this->lang->load('groups');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main form
@@ -55,8 +57,8 @@ echo field_view(lang('openldap_directory_bind_password'), '', 'bind_password');
 echo fieldset_footer();
 
 echo fieldset_header(lang('openldap_directory_containers'));
-echo field_view(lang('openldap_directory_users'), '', 'users_container');
-echo field_view(lang('openldap_directory_groups'), '', 'groups_container');
+echo field_view(lang('users_users'), '', 'users_container');
+echo field_view(lang('groups_groups'), '', 'groups_container');
 echo field_view(lang('openldap_directory_computers'), '', 'computers_container');
 echo fieldset_footer();
 

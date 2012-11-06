@@ -5,7 +5,7 @@
  * ClearOS sync action.
  *
  * @category   Apps
- * @package    Accounts
+ * @package    OpenLDAP_Directory
  * @subpackage Scripts
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation

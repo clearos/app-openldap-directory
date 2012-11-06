@@ -5,7 +5,7 @@
  *
  * @category   Apps
  * @package    OpenLDAP_Directory
- * @subpackage Ajax
+ * @subpackage Javascript
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later

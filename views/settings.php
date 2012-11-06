@@ -77,8 +77,8 @@ if ($driver === Accounts_Engine::DRIVER_OTHER) {
 }
 
 echo "<div id='infoboxes' style='display:none;'>";
-echo infobox_highlight(lang(
-    'openldap_directory_directory_status'),
+echo infobox_highlight(
+    lang('openldap_directory_directory_status'),
     "<div id='initializing_status'></div>",
     array('id' => 'initializing_box', 'hidden' => TRUE)
 );

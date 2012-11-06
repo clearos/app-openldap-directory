@@ -88,6 +88,8 @@ class Information extends ClearOS_Controller
 
     /**
      * Returns directory information. 
+     *
+     * @return directory information in JSON
      */
 
     function get_info()

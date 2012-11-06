@@ -46,6 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
+clearos_load_language('accounts');
 clearos_load_language('users');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -153,6 +154,8 @@ class User_Driver extends User_Engine
 
     /**
      * User constructor.
+     *
+     * @param string $username username
      */
 
     public function __construct($username)
@@ -251,7 +254,7 @@ class User_Driver extends User_Engine
         // Ping the synchronizer
         //----------------------
 
-        $this->_signal_transaction(lang('users_added_user'));
+        $this->_signal_transaction(lang('accounts_added_user'));
     }
 
     /**
@@ -357,7 +360,7 @@ class User_Driver extends User_Engine
         // Ping the synchronizer
         //----------------------
 
-        $this->_signal_transaction(lang('users_deleted_user'));
+        $this->_signal_transaction(lang('accounts_deleted_user'));
     }
 
     /**
@@ -524,10 +527,10 @@ class User_Driver extends User_Engine
      * even when the password policy dictates that the password is not allowed
      * to change (minimum password age).
      *
-     * @param string  $password       password
-     * @param string  $verify         password verify
-     * @param string  $requested_by   username requesting the password change
-     * @param boolean $include_samba  workaround for Samba password changes
+     * @param string  $password      password
+     * @param string  $verify        password verify
+     * @param string  $requested_by  username requesting the password change
+     * @param boolean $include_samba workaround for Samba password changes
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
@@ -575,7 +578,7 @@ class User_Driver extends User_Engine
 
         $this->ldaph->modify($dn, $ldap_object);
 
-        $this->_signal_transaction(lang('users_reset_user_password'));
+        $this->_signal_transaction(lang('accounts_reset_user_password'));
     }
 
     /**
@@ -648,13 +651,15 @@ class User_Driver extends User_Engine
         $options['validate_exit_code'] = FALSE;
 
         $shell = new Shell();
-        $intval = $shell->Execute(self::COMMAND_LDAPPASSWD, 
+        $intval = $shell->execute(
+            self::COMMAND_LDAPPASSWD, 
             '-x ' .
             '-D "' . $dn . '" ' .
             '-w "' . $oldpassword . '" ' .
             '-s "' . $password . '" ' .
             '"' . $dn . '"', 
-            FALSE, $options);
+            FALSE, $options
+        );
     
         if ($intval != 0)
             $output = $shell->get_output();
@@ -704,7 +709,7 @@ class User_Driver extends User_Engine
 
         $this->ldaph->modify($dn, $ldap_object);
 
-        $this->_signal_transaction(lang('users_set_user_password'));
+        $this->_signal_transaction(lang('accounts_set_user_password'));
     }
 
     /**
@@ -728,14 +733,14 @@ class User_Driver extends User_Engine
                 $extension->unlock_hook($this->username);
         }
 
-        $this->_signal_transaction(lang('users_unlocked_user_account'));
+        $this->_signal_transaction(lang('accounts_unlocked_user_account'));
     }
 
     /**
      * Updates a user on the system.
      *
      * @param array $user_info user information
-     * @param array $acl access control list
+     * @param array $acl       access control list
      *
      * @return void
      * @throws Validation_Exception, Engine_Exception, User_Not_Found_Exception
@@ -801,7 +806,7 @@ class User_Driver extends User_Engine
         // Ping the synchronizer
         //----------------------
 
-        $this->_signal_transaction(lang('users_updated_user_information'));
+        $this->_signal_transaction(lang('accounts_updated_user_information'));
     }
 
     ///////////////////////////////////////////////////////////////////////////////
@@ -925,7 +930,7 @@ class User_Driver extends User_Engine
     /**
      * Validates a user_info array.
      *
-     * @param array $user_info user information array
+     * @param array   $user_info user information array
      * @param boolean $is_modify set to TRUE if using results on LDAP modif
      *
      * @return boolean TRUE if user_info is valid
@@ -963,14 +968,11 @@ class User_Driver extends User_Engine
 
         if (! $is_modify) {
             foreach ($this->info_map as $attribute => $details) {
-                if (empty($user_info[$attribute]) && 
-                    ($details['required'] == TRUE) &&
-                    (!in_array($attribute, $invalid_attrs))
-                    ) {
+                if (empty($user_info[$attribute]) 
+                    && ($details['required'] == TRUE) 
+                    && (!in_array($attribute, $invalid_attrs))
+                ) {
                         $is_valid = FALSE;
-                        $this->AddValidationError(
-                            LOCALE_LANG_ERRMSG_REQUIRED_PARAMETER_IS_MISSING . " - " . $details['locale'], __METHOD__, __LINE__
-                        );
                 } 
             }
         }
@@ -991,7 +993,6 @@ class User_Driver extends User_Engine
      * @param array $user_info user information
      * @param array $password  password
      *
-     * @access private
      * @return array LDAP attributes
      */
 
@@ -1031,6 +1032,11 @@ class User_Driver extends User_Engine
 
     /**
      * Runs add_attributes hook in extensions.
+     *
+     * @param array $user_info   user info 
+     * @param array $ldap_object LDAP attributes
+     *
+     * @return void
      */
 
     protected function _add_attributes_hook($user_info, $ldap_object)
@@ -1053,7 +1059,10 @@ class User_Driver extends User_Engine
      * Runs post-processing hook.
      *
      * @param array $user_info user info
+     *
+     * @return void
      */
+
     protected function _add_post_processing_hook($user_info)
     {
         clearos_profile(__METHOD__, __LINE__);
@@ -1069,8 +1078,7 @@ class User_Driver extends User_Engine
     /**
      * Adds the parity bit to the given DES key.
      *
-     * @access private
-     * @param  string  $key 7-Bytes Key without parity
+     * @param string $key 7-Bytes Key without parity
      *
      * @return string
      */
@@ -1115,7 +1123,6 @@ class User_Driver extends User_Engine
      *
      * @param string $password password
      *
-     * @access private
      * @return array LDAP attribute array
      * @throws Engine_Exception, Validation_Exception
      */
@@ -1137,7 +1144,6 @@ class User_Driver extends User_Engine
     /**
      * Converts a user_info array into LDAP attributes.
      *
-     * @access private
      * @param array   $user_info user information array
      * @param boolean $is_modify set to TRUE if using results on LDAP modify
      *
@@ -1307,7 +1313,6 @@ class User_Driver extends User_Engine
     /**
      * Returns extension list.
      *
-     * @access private
      * @return array extension list
      */
 
@@ -1328,7 +1333,6 @@ class User_Driver extends User_Engine
     /**
      * Returns plugins list.
      *
-     * @access private
      * @return array extension list
      */
 
@@ -1348,8 +1352,6 @@ class User_Driver extends User_Engine
 
     /**
      * Returns LDAP user information in hash array.
-     *
-     * @access private
      *
      * @return array hash array of user information
      * @throws Engine_Exception, User_Not_Found_Exception
@@ -1408,7 +1410,7 @@ class User_Driver extends User_Engine
      * @return void
      */
 
-    public function _initalize_group_memberships()
+    protected function _initalize_group_memberships()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -1419,9 +1421,8 @@ class User_Driver extends User_Engine
     /**
      * Signals a user transaction.
      *
-     * @param string $action description of the transaction
+     * @param string $transaction description of the transaction
      *
-     * @access private
      * @return void
      */
 

@@ -179,10 +179,9 @@ class User_Manager_Driver extends User_Manager_Engine
      * The core_only flag is nice to have to optimize the method calls.  Pulling
      * in all the extension and group information can be expensive.
      *
-     * @param string  $filter      user filter
+     * @param string  $filter    user filter
      * @param boolean $core_only core details only
      *
-     * @access private
      * @return array user information
      */
 

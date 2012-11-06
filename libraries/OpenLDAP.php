@@ -47,6 +47,7 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('base');
+clearos_load_language('network');
 clearos_load_language('openldap_directory');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -280,7 +281,7 @@ class OpenLDAP extends Engine
      * Initializes the OpenLDAP accounts system.
      *
      * @param string  $domain base domain
-     * @param boolean $force nforces initialization if TRUE
+     * @param boolean $force  forces initialization if TRUE
      *
      * @return void
      * @throws Engine_Exception, Validation_Exception
@@ -477,7 +478,7 @@ class OpenLDAP extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (! Network_Utils::is_valid_domain($domain))
-            return lang('ldap_domain_invalid');
+            return lang('network_domain_invalid');
     }
 
     /**
@@ -504,7 +505,6 @@ class OpenLDAP extends Engine
      *
      * @param string $ldif LDIF file
      *
-     * @access private
      * @return void
      * @throws EngineException, ValidationException
      */
@@ -554,13 +554,15 @@ class OpenLDAP extends Engine
 
         $shell = new Shell();
         $shell->Execute(self::COMMAND_SLAPADD, '-n2 -l ' . self::FILE_ACCESSLOG_DATA, TRUE);
-        $shell->Execute(self::COMMAND_SLAPADD, '-n3 -l ' . $ldif, true);
+        $shell->Execute(self::COMMAND_SLAPADD, '-n3 -l ' . $ldif, TRUE);
     }
 
     /**
      * Initializes authconfig.
      *
      * This method will update the nsswitch.conf and pam configuration.
+     *
+     * @return void
      */
 
     protected function _initialize_authconfig()
@@ -568,7 +570,8 @@ class OpenLDAP extends Engine
         clearos_profile(__METHOD__, __LINE__);
 
         $shell = new Shell();
-        $shell->execute(self::COMMAND_AUTHCONFIG, 
+        $shell->execute(
+            self::COMMAND_AUTHCONFIG, 
             '--enableshadow --passalgo=sha512 ' .
             '--enablecache --enablelocauthorize --enablemkhomedir ' .
             '--disablewinbind --disablewinbindauth ' .
@@ -642,6 +645,8 @@ class OpenLDAP extends Engine
 
     /**
      * Sets driver.
+     *
+     * @return void
      */
 
     protected function _set_driver()
