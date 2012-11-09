@@ -318,7 +318,7 @@ class Group_Driver extends Group_Engine
         Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         if (! $this->exists())
-            throw new Group_Not_Found_Exception();
+            throw new Group_Not_Found_Exception($this->group_name);
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
@@ -530,7 +530,7 @@ class Group_Driver extends Group_Engine
         Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         if (! $this->exists())
-            throw new Group_Not_Found_Exception();
+            throw new Group_Not_Found_Exception($this->group_name);
 
         // Set description
         //----------------
@@ -566,7 +566,7 @@ class Group_Driver extends Group_Engine
         Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
 
         if (! $this->exists())
-            throw new Group_Not_Found_Exception();
+            throw new Group_Not_Found_Exception($this->group_name);
 
         // Check for invalid users
         //------------------------
@@ -631,7 +631,7 @@ class Group_Driver extends Group_Engine
         //--------------------------
 
         if (! $this->exists())
-            throw new Group_Not_Found_Exception();
+            throw new Group_Not_Found_Exception($this->group_name);
 
         // Convert user info to LDAP object
         //---------------------------------
@@ -1051,7 +1051,7 @@ class Group_Driver extends Group_Engine
         if (! empty($ldap_info))
             return $ldap_info;
 
-        throw new Group_Not_Found_Exception();
+        throw new Group_Not_Found_Exception($this->group_name);
     }
 
     /**

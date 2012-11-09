@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory
 Epoch: 1
-Version: 1.2.2
+Version: 1.2.3
 Release: 1%{dist}
 Summary: Directory Server
 License: GPLv3
@@ -11,14 +11,14 @@ Buildarch: noarch
 Requires: %{name}-core = 1:%{version}-%{release}
 Requires: app-base
 Requires: app-users
-Requires: app-groups
+Requires: app-groups => 1:1.2.3
 Obsoletes: app-directory-server
 
 %description
 The Directory Server provides information on users, groups and systems.  You can provide read only access to your directory to integrate third party applications both locally and in the cloud.
 
 %package core
-Summary: Directory Server - Core
+Summary: Directory Server - APIs and install
 License: LGPLv3
 Group: ClearOS/Libraries
 Provides: system-accounts
