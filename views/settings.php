@@ -39,6 +39,7 @@ use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
 $this->lang->load('base');
 $this->lang->load('accounts');
 $this->lang->load('openldap_directory');
+$this->lang->load('ldap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Form handler
@@ -78,7 +79,7 @@ if ($driver === Accounts_Engine::DRIVER_OTHER) {
 
 echo "<div id='infoboxes' style='display:none;'>";
 echo infobox_highlight(
-    lang('openldap_directory_directory_status'),
+    lang('ldap_directory_status'),
     "<div id='initializing_status'></div>",
     array('id' => 'initializing_box', 'hidden' => TRUE)
 );
@@ -96,12 +97,12 @@ if ($initialize_blurb)
 echo form_open('openldap_directory/settings/edit');
 echo form_header(lang('base_settings'));
 
-echo field_view(lang('openldap_directory_mode'), $mode_text, 'mode_settings');
+echo field_view(lang('ldap_mode'), $mode_text, 'mode_settings');
 
 if (($mode === LDAP::MODE_MASTER) || ($mode === LDAP::MODE_STANDALONE))
-    echo field_input('domain', $domain, lang('openldap_directory_base_domain'), $read_only);
+    echo field_input('domain', $domain, lang('ldap_base_domain'), $read_only);
 
-echo field_dropdown('policy', $policies, $policy, lang('openldap_directory_publish_policy'), $read_only);
+echo field_dropdown('policy', $policies, $policy, lang('ldap_publish_policy'), $read_only);
 
 echo field_button_set($buttons);
 

@@ -28,7 +28,7 @@ Provides: system-users-driver
 Requires: app-base-core
 Requires: app-accounts-core
 Requires: app-groups-core
-Requires: app-ldap-core
+Requires: app-ldap-core >= 1:1.4.5
 Requires: app-network-core
 Requires: app-openldap-core >= 1:1.0.7
 Requires: app-users-core

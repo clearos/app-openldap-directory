@@ -36,6 +36,7 @@
 $this->lang->load('openldap_directory');
 $this->lang->load('users');
 $this->lang->load('groups');
+$this->lang->load('ldap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // Main form
@@ -44,22 +45,22 @@ $this->lang->load('groups');
 echo "<div id='directory_information' style='display:none;'>";
 
 echo form_open('openldap_directory');
-echo form_header(lang('openldap_directory_directory_information'));
+echo form_header(lang('ldap_directory_information'));
 
-echo fieldset_header(lang('openldap_directory_capabilities'));
-echo field_view(lang('openldap_directory_mode'), '', 'mode');
+echo fieldset_header(lang('ldap_capabilities'));
+echo field_view(lang('ldap_mode'), '', 'mode');
 echo fieldset_footer();
 
-echo fieldset_header(lang('openldap_directory_connection_information'));
-echo field_view(lang('openldap_directory_base_dn'), '', 'base_dn');
-echo field_view(lang('openldap_directory_bind_dn'), '', 'bind_dn');
-echo field_view(lang('openldap_directory_bind_password'), '', 'bind_password');
+echo fieldset_header(lang('ldap_connection_information'));
+echo field_view(lang('ldap_base_dn'), '', 'base_dn');
+echo field_view(lang('ldap_bind_dn'), '', 'bind_dn');
+echo field_view(lang('ldap_bind_password'), '', 'bind_password');
 echo fieldset_footer();
 
-echo fieldset_header(lang('openldap_directory_containers'));
+echo fieldset_header(lang('ldap_containers'));
 echo field_view(lang('users_users'), '', 'users_container');
 echo field_view(lang('groups_groups'), '', 'groups_container');
-echo field_view(lang('openldap_directory_computers'), '', 'computers_container');
+echo field_view(lang('ldap_computers'), '', 'computers_container');
 echo fieldset_footer();
 
 echo form_footer();

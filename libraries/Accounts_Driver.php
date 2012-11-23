@@ -46,7 +46,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
-// clearos_load_language('base');
+clearos_load_language('accounts');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -333,7 +333,7 @@ class Accounts_Driver extends Accounts_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if ($this->is_reserved_id($id))
-            return lang('openldap_directory_reserved_for_system_use');
+            return lang('accounts_reserved_for_system_use');
         else
             return '';
     }
@@ -422,11 +422,11 @@ class Accounts_Driver extends Accounts_Engine
         $status = $this->is_unique_id($id, $ignore_aliases_for_uid);
 
         if ($status === self::STATUS_USERNAME_EXISTS)
-            return lang('openldap_directory_username_with_this_name_exists');
+            return lang('accounts_username_with_this_name_exists');
         else if ($status === self::STATUS_ALIAS_EXISTS)
-            return lang('openldap_directory_alias_with_this_name_exists');
+            return lang('accounts_alias_with_this_name_exists');
         else if ($status === self::STATUS_GROUP_EXISTS)
-            return lang('openldap_directory_group_with_this_name_exists');
+            return lang('accounts_group_with_this_name_exists');
         else
             return '';
     }

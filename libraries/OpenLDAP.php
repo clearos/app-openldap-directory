@@ -49,6 +49,7 @@ require_once $bootstrap . '/bootstrap.php';
 clearos_load_language('base');
 clearos_load_language('network');
 clearos_load_language('openldap_directory');
+clearos_load_language('ldap');
 
 ///////////////////////////////////////////////////////////////////////////////
 // D E P E N D E N C I E S
@@ -515,7 +516,7 @@ class OpenLDAP extends Engine
 
         $ldap = new LDAP_Driver();
 
-        clearos_log('openldap_directory', lang('openldap_directory_preparing_import'));
+        clearos_log('openldap_directory', lang('ldap_preparing_import'));
 
         // Shutdown LDAP if running
         //-------------------------
@@ -523,7 +524,7 @@ class OpenLDAP extends Engine
         $was_running = $ldap->get_running_state();
 
         if ($was_running) {
-            clearos_log('openldap_directory', lang('openldap_directory_shutting_down_ldap_server'));
+            clearos_log('openldap_directory', lang('ldap_shutting_down_ldap_server'));
             $ldap->set_running_state(FALSE);
         }
 
@@ -550,7 +551,7 @@ class OpenLDAP extends Engine
         // Import new database
         //--------------------
 
-        clearos_log('openldap_directory', lang('openldap_directory_importing_data'));
+        clearos_log('openldap_directory', lang('ldap_importing_data'));
 
         $shell = new Shell();
         $shell->Execute(self::COMMAND_SLAPADD, '-n2 -l ' . self::FILE_ACCESSLOG_DATA, TRUE);

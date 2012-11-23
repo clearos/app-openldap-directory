@@ -55,7 +55,7 @@ $app['core_provides'] = array(
 $app['core_requires'] = array(
     'app-accounts-core',
     'app-groups-core',
-    'app-ldap-core',
+    'app-ldap-core >= 1:1.4.5',
     'app-network-core',
     'app-openldap-core >= 1:1.0.7',
     'app-users-core',
