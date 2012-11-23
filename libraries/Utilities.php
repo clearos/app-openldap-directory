@@ -52,19 +52,27 @@ require_once $bootstrap . '/bootstrap.php';
 // D E P E N D E N C I E S
 ///////////////////////////////////////////////////////////////////////////////
 
+// Classes
+//--------
+
 use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\base\Engine as Engine;
-use \clearos\apps\base\File as File;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
+use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('accounts/Nscd');
 clearos_load_library('base/Engine');
-clearos_load_library('base/File');
 clearos_load_library('openldap/LDAP_Driver');
+clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/Utilities');
+
+// Exceptions
+//-----------
+
+use \Exception as Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -84,12 +92,6 @@ clearos_load_library('openldap_directory/Utilities');
 
 class Utilities extends Engine
 {
-    ///////////////////////////////////////////////////////////////////////////////
-    // C O N S T A N T S
-    ///////////////////////////////////////////////////////////////////////////////
-
-    const FILE_TRANSACTION_LOG = '/var/clearos/openldap_directory/transaction.log';
-
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -405,16 +407,11 @@ class Utilities extends Engine
         try {
             $nscd = new Nscd();
             $nscd->clear_cache();
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             // Not fatal
         }
 
-        $file = new File(self::FILE_TRANSACTION_LOG);
-
-        if (!$file->exists())
-            $file->create('root', 'webconfig', '0664');
-
-        $timestamp = date('r');
-        $file->add_lines("$timestamp - $action\n");
+        $accounts = new Accounts_Driver();
+        $accounts->log_transaction($action);
     }
 }
