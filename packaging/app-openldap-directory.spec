@@ -30,15 +30,15 @@ Requires: app-accounts-core >= 1:1.4.5
 Requires: app-groups-core
 Requires: app-ldap-core >= 1:1.4.5
 Requires: app-network-core
-Requires: app-openldap-core >= 1:1.0.7
+Requires: app-openldap-core >= 1:1.4.8
 Requires: app-users-core
 Requires: authconfig
 Requires: csplugin-filewatch
 Requires: nss-pam-ldapd
 Requires: nscd
-Requires: openldap >= 2.4.19
-Requires: openldap-clients >= 2.4.19
-Requires: openldap-servers >= 2.4.19
+Requires: openldap
+Requires: openldap-clients
+Requires: openldap-servers
 Requires: pam_ldap
 Requires: webconfig-php-ldap
 Obsoletes: app-directory-server-core
