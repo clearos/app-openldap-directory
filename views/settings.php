@@ -73,7 +73,7 @@ if ($form_type === 'init') {
 echo "<input type='hidden' id='validated_action' value='$validated_action'>";
 
 if ($driver === Accounts_Engine::DRIVER_OTHER) {
-    echo infobox_warning(lang('base_warning'), lang('accounts_different_drectory_is_already_configured'));
+    echo infobox_warning(lang('base_warning'), lang('accounts_different_directory_is_already_configured'));
     return;
 }
 
