@@ -53,7 +53,7 @@ $app['core_provides'] = array(
 );
 
 $app['core_requires'] = array(
-    'app-accounts-core >= 1:1.4.5',
+    'app-accounts-core >= 1:1.4.10',
     'app-groups-core',
     'app-ldap-core >= 1:1.4.5',
     'app-network-core',
@@ -85,7 +85,12 @@ $app['core_file_manifest'] = array(
 );
 
 $app['core_directory_manifest'] = array(
-   '/var/clearos/openldap_directory' => array(),
-   '/var/clearos/openldap_directory/backup' => array(),
-   '/var/clearos/openldap_directory/extensions' => array(),
+    '/var/clearos/openldap_directory' => array(),
+    '/var/clearos/openldap_directory/backup' => array(),
+    '/var/clearos/openldap_directory/extensions' => array(),
+    '/var/clearos/openldap_directory/lock' => array(
+        'mode' => '0775',
+        'owner' => 'root',
+        'group' => 'webconfig',
+    ),
 );

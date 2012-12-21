@@ -60,6 +60,7 @@ cp -r * %{buildroot}/usr/clearos/apps/openldap_directory/
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/backup
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/extensions
+install -d -m 0775 %{buildroot}/var/clearos/openldap_directory/lock
 install -D -m 0644 packaging/filewatch-openldap-directory-mode.conf %{buildroot}/etc/clearsync.d/filewatch-openldap-directory-mode.conf
 install -D -m 0755 packaging/initialize-plugins %{buildroot}/usr/sbin/initialize-plugins
 install -D -m 0644 packaging/nslcd.conf %{buildroot}/var/clearos/ldap/synchronize/nslcd.conf
@@ -107,6 +108,7 @@ exit 0
 %dir /var/clearos/openldap_directory
 %dir /var/clearos/openldap_directory/backup
 %dir /var/clearos/openldap_directory/extensions
+%dir %attr(0775,root,webconfig) /var/clearos/openldap_directory/lock
 /usr/clearos/apps/openldap_directory/deploy
 /usr/clearos/apps/openldap_directory/language
 /usr/clearos/apps/openldap_directory/libraries

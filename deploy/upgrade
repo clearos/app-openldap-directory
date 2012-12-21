@@ -3,5 +3,6 @@
 # Sudoers entry
 #--------------
 
-/usr/sbin/addsudo /usr/sbin/authconfig app-openldap-core
-/usr/sbin/addsudo /usr/sbin/slapcat app-openldap-core
+/usr/sbin/addsudo /usr/sbin/authconfig app-openldap-directory-core
+/usr/sbin/addsudo /usr/sbin/slapcat app-openldap-directory-core
+/usr/sbin/addsudo /usr/sbin/app-openldap-directory-initialize app-openldap-directory-core

@@ -1,0 +1,116 @@
+#!/usr/clearos/sandbox/usr/bin/php
+<?php
+
+/**
+ * OpenLDAP directory initialization script.
+ *
+ * @category   ClearOS
+ * @package    OpenLDAP_Directory
+ * @subpackage Scripts
+ * @author     ClearFoundation <developer@clearfoundation.com>
+ * @copyright  2012 ClearFoundation
+ * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
+ * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+// B O O T S T R A P
+///////////////////////////////////////////////////////////////////////////////
+
+$bootstrap = getenv('CLEAROS_BOOTSTRAP') ? getenv('CLEAROS_BOOTSTRAP') : '/usr/clearos/framework/shared';
+require_once $bootstrap . '/bootstrap.php';
+
+///////////////////////////////////////////////////////////////////////////////
+// D E P E N D E N C I E S
+///////////////////////////////////////////////////////////////////////////////
+
+// Classes
+//--------
+
+use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
+use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
+
+clearos_load_library('openldap_directory/Accounts_Driver');
+clearos_load_library('openldap_directory/OpenLDAP');
+
+// Exceptions
+//-----------
+
+use \Exception as Exception;
+
+///////////////////////////////////////////////////////////////////////////////
+// F U N C T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+function ttyecho($on)
+{
+    global $ttyecho;
+
+    if ($on) {
+        if (isset($ttyecho))
+            exec('stty ' .$ttyecho);
+    } else {
+        $ttyecho = exec('stty -g');
+        exec('stty -echo');
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// O P T I O N S
+///////////////////////////////////////////////////////////////////////////////
+
+$short_options = '';
+$short_options .= 'd:'; // Domain
+$short_options .= 'f';  // Force
+$short_options .= 'h';  // Help
+
+$help_options  = '';
+$help_options .= "  -d: Internet domain (e.g. example.com)\n";
+$help_options .= "  -f: Force initialization\n";
+$help_options .= "\n";
+$help_options .= "  -h: Help\n";
+
+$options = getopt($short_options);
+
+$help = isset($options['h']) ? TRUE : FALSE;
+$force = isset($options['f']) ? TRUE : FALSE;
+$domain = isset($options['d']) ? $options['d'] : '';
+
+///////////////////////////////////////////////////////////////////////////////
+// M A I N
+///////////////////////////////////////////////////////////////////////////////
+
+$openldap = new OpenLDAP();
+$driver = new Accounts_Driver();
+
+// Basic usage stuff
+//------------------
+
+if ($help) {
+    echo "usage: " . $argv[0] . " [options]\n";
+    echo $help_options;
+    exit(0);
+}
+
+try {
+    if (!$force && $driver->is_initialized()) {
+        echo "Accounts system is already initialized\n";
+        exit(0);
+    }
+} catch (Exception $e) {
+    echo "error: " . $e->GetMessage() . "\n";
+}
+
+// Handle command line options
+//--------------------------------------------------------------------
+
+while ($openldap->validate_domain($domain)) {
+    echo 'Internet domain (e.g. example.com): ';
+    $domain = trim(fgets(STDIN));
+}
+
+echo "The following settings will be used to set up the directory\n\n";
+echo "Domain:          $domain\n";
+echo "\n";
+
+$openldap->initialize($domain, $force);

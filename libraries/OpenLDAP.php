@@ -129,7 +129,8 @@ class OpenLDAP extends Engine
     // Paths
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
     const COMMAND_SLAPCAT = '/usr/sbin/slapcat';
-    const FILE_INITIALIZING = '/var/clearos/openldap_directory/initializing';
+    const COMMAND_INITIALIZE = '/usr/sbin/app-openldap-directory-initialize';
+    const FILE_INITIALIZING = '/var/clearos/openldap_directory/lock/initializing';
     const PATH_LDAP_BACKUP = '/var/clearos/openldap_directory/backup/';
     const PATH_LDAP = '/var/lib/ldap';
 
@@ -297,16 +298,23 @@ class OpenLDAP extends Engine
 
         $driver = new Accounts_Driver();
 
-        if (($driver->is_initialized() && !$force))
-            return;
+        if ($driver->is_initialized()) {
+            if ($force)
+                $driver->set_initialized(FALSE);
+            else
+                return;
+        }
 
-        // Set initializing
-        //-----------------
+        // Lock state file
+        //----------------
 
         $file = new File(self::FILE_INITIALIZING);
+        $initializing_lock = fopen(self::FILE_INITIALIZING, 'w');
 
-        if (! $file->exists())
-            $file->create('root', 'root', '0644');
+        if (!flock($initializing_lock, LOCK_EX | LOCK_NB)) {
+            clearos_log('openldap_directory', 'local initialization is already running');
+            return;
+        }
 
         // Go through initalization process
         //---------------------------------
@@ -362,13 +370,20 @@ class OpenLDAP extends Engine
             // Not fatal
         }
 
-        $file->delete();
-
         // Tell accounts system we're done
         //--------------------------------
 
         $driver->set_initialized();
         $driver->synchronize();
+
+        // Cleanup file / file lock
+        //-------------------------
+
+        flock($initializing_lock, LOCK_UN);
+        fclose($initializing_lock);
+
+        if ($file->exists())
+            $file->delete();
     }
 
     /**
@@ -425,6 +440,30 @@ class OpenLDAP extends Engine
 
         if (! is_null($last_exception))
             throw new Engine_Exception(clearos_exception_message($last_exception));
+    }
+
+    /**
+     * Initializes the OpenLDAP accounts system.
+     *
+     * @param string  $domain base domain
+     * @param boolean $force  forces initialization if TRUE
+     *
+     * @return void
+     * @throws Engine_Exception, Validation_Exception
+     */
+
+    public function run_initialize($domain = self::DEFAULT_DOMAIN, $force = FALSE)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_domain($domain));
+
+        $options['background'] = TRUE;
+
+        $force = ($force) ? '-f' : '';
+
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_INITIALIZE, "-d '$domain' $force", TRUE, $options);
     }
 
     /**

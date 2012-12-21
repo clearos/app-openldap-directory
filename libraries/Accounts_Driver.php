@@ -102,7 +102,7 @@ class Accounts_Driver extends Accounts_Engine
 
     const DRIVER_NAME = 'openldap_directory';
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
-    const FILE_INITIALIZING = '/var/clearos/openldap_directory/initializing';
+    const FILE_INITIALIZING = '/var/clearos/openldap_directory/lock/initializing';
     const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 
     // Status codes for username/group/alias uniqueness
