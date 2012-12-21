@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory
 Epoch: 1
-Version: 1.4.8
+Version: 1.4.10
 Release: 1%{dist}
 Summary: Directory Server
 License: GPLv3
@@ -26,7 +26,7 @@ Provides: system-accounts-driver
 Provides: system-groups-driver
 Provides: system-users-driver
 Requires: app-base-core
-Requires: app-accounts-core >= 1:1.4.5
+Requires: app-accounts-core >= 1:1.4.10
 Requires: app-groups-core
 Requires: app-ldap-core >= 1:1.4.5
 Requires: app-network-core
