@@ -276,10 +276,13 @@ class Accounts_Driver extends Accounts_Engine
         //-------------------
 
         $file = new File(self::FILE_INITIALIZING);
-        $initializing_lock = fopen(self::FILE_INITIALIZING, 'r');
 
-        if ($file->exists() && !flock($initializing_lock, LOCK_SH | LOCK_NB))
-            return Accounts_Engine::STATUS_INITIALIZING;
+        if ($file->exists()) {
+            $initializing_lock = fopen(self::FILE_INITIALIZING, 'r');
+
+            if (!flock($initializing_lock, LOCK_SH | LOCK_NB))
+                return Accounts_Engine::STATUS_INITIALIZING;
+        }
 
         // Check initialized
         //------------------
