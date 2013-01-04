@@ -296,12 +296,24 @@ class Accounts_Driver extends Accounts_Engine
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
-        if ($this->ldaph->is_online())
-            $status = Accounts_Engine::STATUS_ONLINE;
-        else
-            $status = Accounts_Engine::STATUS_OFFLINE;
+        if (!$this->ldaph->is_online())
+            return Accounts_Engine::STATUS_OFFLINE;
 
-        return $status;
+        // Send busy if Samba is doing its long initialization
+        //----------------------------------------------------
+
+        if (clearos_library_installed('samba/OpenLDAP_Driver')) {
+            clearos_load_library('samba/OpenLDAP_Driver');
+            $driver = new \clearos\apps\samba\OpenLDAP_Driver();
+            $status = $driver->get_status();
+
+            if (($status === \clearos\apps\samba\OpenLDAP_Driver::STATUS_SAMBA_INITIALIZING)
+                || ($status === \clearos\apps\samba\OpenLDAP_Driver::STATUS_OPENLDAP_INITIALIZING))
+                
+                return Accounts_Engine::STATUS_BUSY;
+        }
+
+        return Accounts_Engine::STATUS_ONLINE;
     }
 
     /**

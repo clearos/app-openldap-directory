@@ -131,6 +131,7 @@ class OpenLDAP extends Engine
     const COMMAND_SLAPCAT = '/usr/sbin/slapcat';
     const COMMAND_INITIALIZE = '/usr/sbin/app-openldap-directory-initialize';
     const FILE_INITIALIZING = '/var/clearos/openldap_directory/lock/initializing';
+    const FILE_READY_FOR_EXTENSIONS = '/var/clearos/openldap_directory/ready_for_extensions';
     const PATH_LDAP_BACKUP = '/var/clearos/openldap_directory/backup/';
     const PATH_LDAP = '/var/lib/ldap';
 
@@ -372,6 +373,36 @@ class OpenLDAP extends Engine
 
         // Tell accounts system we're done
         //--------------------------------
+
+        // The API is designed as a 2-step process:
+        // 1) initialize OpenLDAP (this method)
+        // 2) initialize Samba extensions
+        // 
+        // The Samba extensions take time to initialize and it is best to leave
+        // LDAP alone during this process.  In practice, these two steps are run 
+        // one right after the other on a ClearOS OpenLDAP implementation.  
+        // However, it is certainly possible to either never run the second step 
+        // (i.e. no Samba) or run the Samba extensions at a later time.
+        // 
+        // This little sleep gives the Samba initialization process a chance to
+        // get the ball rolling before the system gives the "okay, I'm initialize"
+        // go ahead.  Notably, webconfig would show the "Account Manager" with a
+        // "busy initializing OpenLDAP whirly", then a few seconds with the
+        // standard account manager screen, followed 3 seconds later with a
+        // "busy initalizing extensions whirly".  That's technically correct, but...
+
+        try {
+            $ready_file = new File(self::FILE_READY_FOR_EXTENSIONS);
+
+            if (! $ready_file->exists())
+                $ready_file->create('root', 'root', '0644');
+
+            sleep(15);
+
+            $ready_file->delete();
+        } catch (Exception $e) {
+            // Not fatal
+        }
 
         $driver->set_initialized();
         $driver->synchronize();
