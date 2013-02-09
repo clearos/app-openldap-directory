@@ -698,7 +698,7 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if (! preg_match('/^([a-zA-Z]+[0-9a-zA-Z\.\-_\s\$]*)$/', $group_name))
+        if (! preg_match('/^([0-9a-zA-Z\.\-_\s\$]*)$/', $group_name))
             return lang('groups_group_name_invalid');
 
         if ($check_reserved) {
