@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory
 Epoch: 1
-Version: 1.4.14
+Version: 1.4.20
 Release: 1%{dist}
 Summary: Directory Server
 License: GPLv3
