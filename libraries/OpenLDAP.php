@@ -365,7 +365,7 @@ class OpenLDAP extends Engine
         try {
             if ($mode !== Mode_Engine::MODE_SLAVE) {
                 clearos_log('openldap_directory', 'initializing plugin groups');
-                $this->initialize_plugin_groups();
+                $this->initialize_plugin_groups(FALSE);
             }
         } catch (Exception $e) {
             // Not fatal
@@ -420,21 +420,30 @@ class OpenLDAP extends Engine
     /**
      * Initializes plugin groups.
      *
+     * During the initialization() method, there's a good time to 
+     * get the plugin groups added just before the initialization
+     * process is complete.  The "check_init" flag allows us to skip the
+     * initialization check for this particular case.
+     *
+     * @param boolean $check_init flag to check initialization
+     *
      * @return void
      * @throws Engine_Exception
      */
 
-    public function initialize_plugin_groups()
+    public function initialize_plugin_groups($check_init = TRUE)
     {
         clearos_profile(__METHOD__, __LINE__);
 
         // Bail if not initialized
         //--------------------
 
-        $driver = new Accounts_Driver();
+        if ($check_init) {
+            $driver = new Accounts_Driver();
 
-        if (! $driver->is_initialized())
-            return;
+            if (! $driver->is_initialized())
+                return;
+        }
 
         // Set initializing
         //-----------------
