@@ -3,9 +3,9 @@
 /**
  * OpenLDAP plugin driver.
  *
- * @category   Apps
- * @package    OpenLDAP_Directory
- * @subpackage Libraries
+ * @category   apps
+ * @package    openldap-directory
+ * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later
@@ -67,9 +67,9 @@ clearos_load_library('openldap_directory/OpenLDAP');
 /**
  * OpenLDAP plugin driver.
  *
- * @category   Apps
- * @package    OpenLDAP_Directory
- * @subpackage Libraries
+ * @category   apps
+ * @package    openldap-directory
+ * @subpackage libraries
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2005-2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/lgpl.html GNU Lesser General Public License version 3 or later

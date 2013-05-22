@@ -3,9 +3,9 @@
 /**
  * Directory server ajax helper.
  *
- * @category   Apps
- * @package    OpenLDAP_Directory
- * @subpackage Javascript
+ * @category   apps
+ * @package    openldap-directory
+ * @subpackage javascript
  * @author     ClearFoundation <developer@clearfoundation.com>
  * @copyright  2011 ClearFoundation
  * @license    http://www.gnu.org/copyleft/gpl.html GNU General Public License version 3 or later
