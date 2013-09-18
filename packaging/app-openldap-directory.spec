@@ -62,7 +62,6 @@ install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/extensions
 install -d -m 0775 %{buildroot}/var/clearos/openldap_directory/lock
 install -D -m 0755 packaging/app-openldap-directory-initialize %{buildroot}/usr/sbin/app-openldap-directory-initialize
 install -D -m 0644 packaging/filewatch-openldap-directory-mode.conf %{buildroot}/etc/clearsync.d/filewatch-openldap-directory-mode.conf
-install -D -m 0755 packaging/initialize-plugins %{buildroot}/usr/sbin/initialize-plugins
 install -D -m 0644 packaging/nslcd.conf %{buildroot}/var/clearos/ldap/synchronize/nslcd.conf
 install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/accounts/drivers/openldap_directory.php
 install -D -m 0644 packaging/pam_ldap.conf %{buildroot}/var/clearos/ldap/synchronize/pam_ldap.conf
@@ -114,7 +113,6 @@ exit 0
 /usr/clearos/apps/openldap_directory/libraries
 /usr/sbin/app-openldap-directory-initialize
 /etc/clearsync.d/filewatch-openldap-directory-mode.conf
-/usr/sbin/initialize-plugins
 /var/clearos/ldap/synchronize/nslcd.conf
 /var/clearos/accounts/drivers/openldap_directory.php
 /var/clearos/ldap/synchronize/pam_ldap.conf

@@ -79,10 +79,6 @@ $app['core_file_manifest'] = array(
         'target' => '/usr/sbin/app-openldap-directory-initialize',
         'mode' => '0755',
     ),
-    'initialize-plugins' => array(
-        'target' => '/usr/sbin/initialize-plugins',
-        'mode' => '0755',
-    )
 );
 
 $app['core_directory_manifest'] = array(
