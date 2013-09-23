@@ -70,9 +70,7 @@ use \clearos\apps\mode\Mode_Factory as Mode_Factory;
 use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
-use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
-use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('accounts/Nscd');
@@ -86,9 +84,7 @@ clearos_load_library('mode/Mode_Factory');
 clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap/LDAP_Driver');
 clearos_load_library('openldap_directory/Accounts_Driver');
-clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/User_Driver');
-clearos_load_library('openldap_directory/Utilities');
 
 // Exceptions
 //-----------
@@ -365,7 +361,7 @@ class OpenLDAP extends Engine
         try {
             if ($mode !== Mode_Engine::MODE_SLAVE) {
                 clearos_log('openldap_directory', 'initializing plugin groups');
-                $this->initialize_plugin_groups(FALSE);
+                $driver->initialize_plugin_groups(FALSE);
             }
         } catch (Exception $e) {
             // Not fatal
@@ -415,71 +411,6 @@ class OpenLDAP extends Engine
 
         if ($file->exists())
             $file->delete();
-    }
-
-    /**
-     * Initializes plugin groups.
-     *
-     * During the initialization() method, there's a good time to 
-     * get the plugin groups added just before the initialization
-     * process is complete.  The "check_init" flag allows us to skip the
-     * initialization check for this particular case.
-     *
-     * @param boolean $check_init flag to check initialization
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    public function initialize_plugin_groups($check_init = TRUE)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Bail if not initialized
-        //--------------------
-
-        if ($check_init) {
-            $driver = new Accounts_Driver();
-
-            if (! $driver->is_initialized())
-                return;
-        }
-
-        // Set initializing
-        //-----------------
-        // Bail if we are slave... not necessary
-        //--------------------------------------
-
-        $sysmode = Mode_Factory::create();
-        $mode = $sysmode->get_mode();
-
-        if ($mode === Mode_Engine::MODE_SLAVE)
-            return;
-
-        // Load plugin info and initialize
-        //--------------------------------
-
-        $accounts = new Accounts_Driver();
-
-        $plugins = $accounts->get_plugins();
-        $last_exception = NULL;
-
-        try {
-            foreach ($plugins as $plugin => $details) {
-                $plugin_group = $plugin . '_plugin'; // TODO: hard coded value
-                $group = new Group_Driver($plugin_group);
-
-                if (! $group->exists()) {
-                    $info['core']['description'] = $details['name'];
-                    $group->add($info);
-                }
-            }
-        } catch (Exception $e) {
-            $last_exception = $e;
-        }
-
-        if (! is_null($last_exception))
-            throw new Engine_Exception(clearos_exception_message($last_exception));
     }
 
     /**

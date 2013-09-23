@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'openldap_directory';
-$app['version'] = '1.5.4';
+$app['version'] = '1.5.5';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -53,11 +53,12 @@ $app['core_provides'] = array(
 );
 
 $app['core_requires'] = array(
-    'app-accounts-core >= 1:1.4.13',
+    'app-accounts-core >= 1:1.5.4',
     'app-groups-core',
     'app-ldap-core >= 1:1.4.5',
     'app-network-core',
     'app-openldap-core >= 1:1.4.8',
+    'app-samba-extension-core',
     'app-users-core',
     'authconfig',
     'csplugin-filewatch',
