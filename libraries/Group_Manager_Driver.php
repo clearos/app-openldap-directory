@@ -95,7 +95,7 @@ class Group_Manager_Driver extends Engine
 
     protected $ldaph = NULL;
     protected $info_map = array();
-    
+
     ///////////////////////////////////////////////////////////////////////////////
     // M E T H O D S
     ///////////////////////////////////////////////////////////////////////////////
@@ -221,29 +221,29 @@ class Group_Manager_Driver extends Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        $ldap_data = array();
+        $directory_data = array();
         $posix_data = array();
 
-        $ldap_data = $this->_get_details_from_ldap($filter);
+        $directory_data = $this->_get_details_from_directory($filter);
 
         if (($filter === Group_Engine::FILTER_SYSTEM) || ($filter === Group_Engine::FILTER_ALL))
             $posix_data = $this->_get_details_from_posix();
 
-        $data = array_merge($ldap_data, $posix_data);
+        $data = array_merge($directory_data, $posix_data);
 
         return $data;
     }
 
     /**
-     * Loads groups from LDAP.
+     * Loads groups from directory.
      *
      * @param string $filter group filter
      *
-     * @throws Engine_Exception
      * @return array group information
+     * @throws Engine_Exception
      */
 
-    protected function _get_details_from_ldap($filter)
+    protected function _get_details_from_directory($filter)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -251,10 +251,10 @@ class Group_Manager_Driver extends Engine
             $this->ldaph = Utilities::get_ldap_handle();
 
         $group_list = array();
-        $usermap_dn = Utilities::get_usermap_by_dn();
+        $usermap_dn = Utilities::get_usermap('dn');
 
-        // Load groups from LDAP
-        //----------------------
+        // Load groups from directory
+        //---------------------------
 
         $result = $this->ldaph->search(
             "(&(objectclass=posixGroup))", 
@@ -268,19 +268,23 @@ class Group_Manager_Driver extends Engine
             $attributes = $this->ldaph->get_attributes($entry);
             $gid = $attributes['gidNumber'][0];
             $group_name = $attributes['cn'][0];
-
-            // Convert LDAP attributes to PHP array
-            //-------------------------------------
-
             $group_info = array();
+
+            // Convert directory attributes to PHP array
+            //------------------------------------------
 
             $group_info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
-            if (preg_match('/_plugin$/', $group_name))
+            // Add group type
+            //---------------
+
+            $basename = strtolower($group_name);
+
+            if (preg_match('/_plugin$/', $basename))
                 $group_info['core']['type'] = Group_Engine::TYPE_PLUGIN;
-            else if (in_array($group_name, Group_Driver::$windows_list))
+            else if (in_array($basename, Group_Engine::$windows_list))
                 $group_info['core']['type'] = Group_Engine::TYPE_WINDOWS;
-            else if (in_array($group_name, Group_Driver::$builtin_list))
+            else if (in_array($basename, Group_Engine::$builtin_list))
                 $group_info['core']['type'] = Group_Engine::TYPE_BUILTIN;
             else
                 $group_info['core']['type'] = Group_Engine::TYPE_NORMAL;
@@ -323,47 +327,12 @@ class Group_Manager_Driver extends Engine
                 && (($group_info['core']['type'] === Group_Engine::TYPE_NORMAL) 
                 || ($group_info['core']['type'] === Group_Engine::TYPE_BUILTIN)))
             )
-                $group_list[$group_info['core']['group_name']] = $group_info;
+                $group_list[$group_name] = $group_info;
 
             $entry = $this->ldaph->next_entry($entry);
         }
 
         return $group_list;
-    }
-
-    /**
-     * Loads groups from Posix.
-     *
-     * @return array group information
-     * @throws Engine_Exception
-     */
-
-    protected function _get_details_from_posix()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $file = new File(Group_Driver::FILE_CONFIG);
-        $contents = $file->get_contents_as_array();
-
-        $group_data = array();
-
-        foreach ($contents as $line) {
-            $data = explode(":", $line);
-
-            $gid = $data[2];
-
-            if (($gid >= Group_Driver::GID_RANGE_SYSTEM_MIN) && ($gid <= Group_Driver::GID_RANGE_SYSTEM_MAX)) {
-                $assoc_data['core']['group_name'] = $data[0];
-                $assoc_data['core']['type'] = Group_Engine::TYPE_SYSTEM;
-                $assoc_data['core']['description'] = '';
-                $assoc_data['core']['members'] = explode(',', $data[3]);
-                $group_data[$data[0]] = $assoc_data;
-            }
-        }
-
-        ksort($group_data);
-
-        return $group_data;
     }
 
     /**

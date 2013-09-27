@@ -64,7 +64,6 @@ use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\Group_Manager_Driver as Group_Manager_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
-use \clearos\apps\openldap_directory\Plugin_Driver as Plugin_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 use \clearos\apps\users\User_Engine as User_Engine;
@@ -77,7 +76,6 @@ clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/Group_Manager_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
-clearos_load_library('openldap_directory/Plugin_Driver');
 clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
 clearos_load_library('users/User_Engine');
@@ -196,9 +194,6 @@ class User_Driver extends User_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        if ($this->ldaph === NULL)
-            $this->ldaph = Utilities::get_ldap_handle();
-
         // Validate
         //---------
 
@@ -206,16 +201,19 @@ class User_Driver extends User_Engine
         Validation_Exception::is_valid($this->validate_password($password));
         Validation_Exception::is_valid($this->validate_user_info($user_info));
 
-        // Convert user_info and password into LDAP attributes
-        //----------------------------------------------------
+        // Convert user_info and password into attributes
+        //------------------------------------------------
+
+        if ($this->ldaph === NULL)
+            $this->ldaph = Utilities::get_ldap_handle();
 
         $user_object = $this->_convert_user_array_to_attributes($user_info, FALSE);
         $password_object = $this->_convert_password_to_attributes($password);
 
         $ldap_object = array_merge($user_object, $password_object);
 
-        // Add LDAP attributes from extensions
-        //------------------------------------
+        // Add attributes from extensions
+        //-------------------------------
 
         $ldap_object = $this->_add_attributes_hook($user_info, $ldap_object);
 
@@ -231,15 +229,15 @@ class User_Driver extends User_Engine
         if ($this->_dn_exists($dn))
             throw new Validation_Exception(lang('users_full_name_already_exists')); 
 
-        // Add the LDAP user object
-        //-------------------------
+        // Add the user to the directory
+        //------------------------------
 
         $this->ldaph->add($dn, $ldap_object);
 
         // Initialize default group membership
         //------------------------------------
 
-        $this->_initalize_group_memberships();
+        $this->_initialize_group_memberships();
 
         // Handle plugins
         //---------------
@@ -414,7 +412,7 @@ class User_Driver extends User_Engine
     }
 
     /**
-     * Retrieves information for user from LDAP.
+     * Returns information for user.
      *
      * @return array user details
      * @throws Engine_Exception
@@ -423,6 +421,8 @@ class User_Driver extends User_Engine
     public function get_info()
     {
         clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_username($this->username, FALSE, FALSE));
 
         // Get user info
         //--------------
@@ -446,14 +446,12 @@ class User_Driver extends User_Engine
                 $info['extensions'][$extension_name] = $extension->get_info_hook($attributes);
         }
 
-        // Add user info map from plugins
-        //-------------------------------
-
-        $groups = $this->get_group_memberships();
+        // Add user info from plugins
+        //---------------------------
 
         foreach ($this->_get_plugins() as $plugin => $details) {
             $plugin_name = $plugin . '_plugin';
-            $state = (in_array($plugin_name, $groups)) ? TRUE : FALSE;
+            $state = (in_array($plugin_name, $info['groups'])) ? TRUE : FALSE;
             $info['plugins'][$plugin] = $state;
         }
 
@@ -482,7 +480,7 @@ class User_Driver extends User_Engine
     }
 
     /**
-     * Retrieves full information map for user.
+     * Returns full information map for user.
      *
      * @throws Engine_Exception
      *
@@ -1163,7 +1161,6 @@ class User_Driver extends User_Engine
 
         $ldap_object = array();
         $old_attributes = array();
-        $openldap = new OpenLDAP();
 
         try {
             if ($is_modify)
@@ -1351,7 +1348,7 @@ class User_Driver extends User_Engine
     }
 
     /**
-     * Returns LDAP user information in hash array.
+     * Returns user information in hash array.
      *
      * @return array hash array of user information
      * @throws Engine_Exception, User_Not_Found_Exception
@@ -1392,12 +1389,12 @@ class User_Driver extends User_Engine
             return;
 
         foreach ($user_info['plugins'] as $plugin_name => $info) {
-            $plugin = new Plugin_Driver($plugin_name);
+            $group = new Group_Driver($plugin_name . '_plugin');
 
             if ($info['state'])
-                $plugin->add_member($this->username);
+                $group->add_member($this->username);
             else
-                $plugin->delete_member($this->username);
+                $group->delete_member($this->username);
         }
     }
 
@@ -1410,7 +1407,7 @@ class User_Driver extends User_Engine
      * @return void
      */
 
-    protected function _initalize_group_memberships()
+    protected function _initialize_group_memberships()
     {
         clearos_profile(__METHOD__, __LINE__);
 

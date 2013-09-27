@@ -130,22 +130,8 @@ class Group_Driver extends Group_Engine
     // C O N S T A N T S
     ///////////////////////////////////////////////////////////////////////////////
 
-    // Files and paths
-    //----------------
-
-    const FILE_CONFIG = '/etc/group';
-
-    // Internal constants
-    //-------------------
-
     const CONSTANT_NO_MEMBERS_USERNAME = 'nomembers';
     const CONSTANT_NO_MEMBERS_DN = 'No Members';
-
-    // Group ID ranges
-    //----------------
-
-    const GID_RANGE_SYSTEM_MIN = '0';
-    const GID_RANGE_SYSTEM_MAX = '499';
 
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
@@ -191,7 +177,7 @@ class Group_Driver extends Group_Engine
      * @throws Validation_Exception, Engine_Exception
      */
 
-    public function add($group_info, $members = array())
+    public function add($group_info)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -249,21 +235,14 @@ class Group_Driver extends Group_Engine
 
         $ldap_object = $this->_add_attributes_hook($group_info, $ldap_object);
 
-        // Handle group members
-        //---------------------
+        // Add required "no members" member
+        //---------------------------------
 
         $ldap_object['member'] = array();
+        $ldap_object['member'][] = 'cn=' . self::CONSTANT_NO_MEMBERS_DN . ',' . OpenLDAP::get_users_container();
 
-        if (empty($members))
-            $members = array(self::CONSTANT_NO_MEMBERS_DN);
-
-        $users_container = OpenLDAP::get_users_container();    
-
-        foreach ($members as $member)
-            $ldap_object['member'][] = 'cn=' . $member . ',' . $users_container;
-
-        // Add the group to LDAP
-        //----------------------
+        // Add the group to directory
+        //---------------------------
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
@@ -425,24 +404,6 @@ class Group_Driver extends Group_Engine
     }
 
     /**
-     * Returns the group ID number.
-     *
-     * @return integer group ID number
-     * @throws Group_Not_Found_Exception, Engine_Exception
-     */
-
-    public function get_gid_number()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
-
-        $info = $this->_load_group_info();
-
-        return $info['core']['gid_number'];
-    }
-
-    /**
      * Returns the group information.
      *
      * @return array group information
@@ -511,43 +472,6 @@ class Group_Driver extends Group_Engine
     }
 
     /**
-     * Sets the group description.
-     *
-     * @param string $description group description
-     *
-     * @return void
-     * @throws Group_Not_Found_Exception, Engine_Exception, Validation_Exception
-     */
-
-    public function set_description($description)
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        // Validate
-        //---------
-
-        Validation_Exception::is_valid($this->validate_description($description));
-        Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
-
-        if (! $this->exists())
-            throw new Group_Not_Found_Exception($this->group_name);
-
-        // Set description
-        //----------------
-
-        $attributes['description'] = $description;
-
-        if ($this->ldaph === NULL)
-            $this->ldaph = Utilities::get_ldap_handle();
-
-        $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
-
-        $this->ldaph->modify($dn, $attributes);
-
-        $this->_signal_transaction(lang('accounts_updated_group_information'));
-    }
-
-    /**
      * Sets the group member list.
      *
      * @param array $members array of group members
@@ -593,7 +517,7 @@ class Group_Driver extends Group_Engine
         $dn = "cn=" . LDAP_Client::dn_escape($this->group_name) . "," . OpenLDAP::get_groups_container();
 
         if ($this->usermap_username === NULL)
-            $this->_load_usermap_from_ldap();
+            $this->usermap_username = Utilities::get_usermap('username');
 
         foreach ($valid_members as $member) {
             if (! empty($this->usermap_username[$member]))
@@ -627,8 +551,8 @@ class Group_Driver extends Group_Engine
         Validation_Exception::is_valid($this->validate_group_name($this->group_name, FALSE, FALSE));
         // Validation_Exception::is_valid($this->validate_group_info($group_info));
 
-        // User does not exist error
-        //--------------------------
+        // Group does not exist error
+        //---------------------------
 
         if (! $this->exists())
             throw new Group_Not_Found_Exception($this->group_name);
@@ -815,7 +739,7 @@ class Group_Driver extends Group_Engine
     /**
      * Converts group array to LDAP attributes.
      *
-     * The GroupManager class uses this method.  However, we do not want this
+     * The Group_Manager class uses this method.  However, we do not want this
      * method to appear in the API documentation since it is really only for
      * internal use.
      * 
@@ -908,18 +832,18 @@ class Group_Driver extends Group_Engine
     }
 
     /**
-     * Loads group information from LDAP.
+     * Loads group information from directory.
      *
      * @return void
      * @throws Engine_Exception
      */
 
-    protected function _load_group_from_ldap()
+    protected function _load_group_from_directory()
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Load LDAP group object
-        //-----------------------
+        // Load directory group object
+        //----------------------------
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
@@ -932,7 +856,7 @@ class Group_Driver extends Group_Engine
         $entry = $this->ldaph->get_first_entry($result);
 
         if (!$entry)
-            return array(); 
+            return array();
 
         // Convert LDAP attributes into info array
         //----------------------------------------
@@ -954,11 +878,11 @@ class Group_Driver extends Group_Engine
         // Convert RFC2307BIS CN member list to username member list
         //----------------------------------------------------------
 
+        if ($this->usermap_dn === NULL)
+            $this->usermap_dn = Utilities::get_usermap('dn');
+
         $raw_members = $attributes['member'];
         array_shift($raw_members);
-
-        if ($this->usermap_dn === NULL)
-            $this->_load_usermap_from_ldap();
 
         $info['core']['members'] = array();
         $nomember_cn = 'cn=' . self::CONSTANT_NO_MEMBERS_DN . ',' . OpenLDAP::get_users_container();
@@ -973,9 +897,9 @@ class Group_Driver extends Group_Engine
 
         if (preg_match('/_plugin$/', $this->group_name))
             $info['core']['type'] = Group_Engine::TYPE_PLUGIN;
-        else if (in_array($this->group_name, Group_Driver::$windows_list))
+        else if (in_array($this->group_name, Group_Engine::$windows_list))
             $info['core']['type'] = Group_Engine::TYPE_WINDOWS;
-        else if (in_array($this->group_name, Group_Driver::$builtin_list))
+        else if (in_array($this->group_name, Group_Engine::$builtin_list))
             $info['core']['type'] = Group_Engine::TYPE_BUILTIN;
         else
             $info['core']['type'] = Group_Engine::TYPE_NORMAL;
@@ -984,52 +908,10 @@ class Group_Driver extends Group_Engine
     }
 
     /**
-     * Loads group from Posix.
-     *
-     * @return void
-     * @throws Engine_Exception
-     */
-
-    protected function _load_group_from_posix()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        $info = array();
-
-        $file = new File(self::FILE_CONFIG);
-
-        try {
-            $line = $file->lookup_line('/^' . $this->group_name . ':/i');
-        } catch (File_No_Match_Exception $e) {
-            return array();;
-        }
-
-        $parts = explode(':', $line);
-
-        if (count($parts) != 4)
-            return;
-
-        $info['core']['group_name'] = $parts[0];
-        $info['core']['gid_number'] = $parts[2];
-        $info['core']['members'] = explode(',', $parts[3]);
-
-        // Sanity check: check for non-compliant group ID
-        //-----------------------------------------------
-
-        if (($info['core']['gid_number'] >= self::GID_RANGE_SYSTEM_MIN) && ($info['core']['gid_number'] <= self::GID_RANGE_SYSTEM_MAX)) {
-            $info['core']['type'] = Group_Engine::TYPE_SYSTEM;
-        } else {
-            $info['core']['type'] = Group_Engine::TYPE_UNKNOWN;
-        }
-
-        return $info;
-    }
-
-    /**
      * Loads group from information.
      * 
-     * This method loads group information from LDAP if the group exists,
-     * otherwise, group information is loaded from /etc/groups.
+     * This method loads group information from /etc/groups if the group exists,
+     * otherwise, group information is loaded from the directory.
      *
      * @return void
      * @throws Group_Not_Found_Exception, Engine_Exception
@@ -1046,53 +928,12 @@ class Group_Driver extends Group_Engine
         if (! empty($posix_info))
             return $posix_info;
 
-        $ldap_info = $this->_load_group_from_ldap();
+        $directory_info = $this->_load_group_from_directory();
 
-        if (! empty($ldap_info))
-            return $ldap_info;
+        if (! empty($directory_info))
+            return $directory_info;
 
         throw new Group_Not_Found_Exception($this->group_name);
-    }
-
-    /**
-     * Loads group list arrays to help with mapping usernames to DNs.
-     *
-     * RFC2307bis lists a group of users by DN (which is a CN/common name
-     * in our implementation).  Since we prefer seeing a group listed by
-     * usernames, this method is used to create two hash arrays to map
-     * the usernames and DNs.
-     *
-     * @return void
-     */
-
-    protected function _load_usermap_from_ldap()
-    {
-        clearos_profile(__METHOD__, __LINE__);
-
-        if ($this->ldaph === NULL)
-            $this->ldaph = Utilities::get_ldap_handle();
-
-        $this->usermap_dn = array();
-        $this->usermap_username = array();
-
-        $result = $this->ldaph->search(
-            "(&(cn=*)(objectclass=posixAccount))",
-            OpenLDAP::get_users_container(),
-            array('dn', 'uid')
-        );
-
-        $entry = $this->ldaph->get_first_entry($result);
-
-        while ($entry) {
-            $attrs = $this->ldaph->get_attributes($entry);
-            $dn = $this->ldaph->get_dn($entry);
-            $uid = $attrs['uid'][0];
-
-            $this->usermap_dn[$dn] = $uid;
-            $this->usermap_username[$uid] = $dn;
-
-            $entry = $this->ldaph->next_entry($entry);
-        }
     }
 
     /**

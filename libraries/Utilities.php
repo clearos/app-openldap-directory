@@ -248,17 +248,19 @@ class Utilities extends Engine
     }
 
     /**
-     * Loads group list arrays to help with mapping usernames to DNs.
+     * Loads group list arrays to help with mapping usernames/DNs.
      *
      * RFC2307bis lists a group of users by DN (which is a CN/common name
      * in our implementation).  Since we prefer seeing a group listed by
      * usernames, this method is used to create two hash arrays to map
      * the usernames and DNs.
      *
+     * @param string $type type of map (dn or username)
+     *
      * @return void
      */
 
-    public static function get_usermap_by_dn()
+    public static function get_usermap()
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -286,7 +288,10 @@ class Utilities extends Engine
             $entry = $ldaph->next_entry($entry);
         }
 
-        return $usermap_dn;
+        if ($type === 'dn')
+            return $usermap_dn;
+        else
+            return $usermap_username;
     }
 
     /**

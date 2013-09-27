@@ -128,7 +128,7 @@ class User_Manager_Driver extends User_Manager_Engine
 
         $user_list = array();
 
-        foreach ($raw_list as $username => $userinfo)
+        foreach ($raw_list as $username => $user_info)
             $user_list[] = $username;
 
         return $user_list;
@@ -189,8 +189,8 @@ class User_Manager_Driver extends User_Manager_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Prep group membership lookup table
-        //-----------------------------------
+        // Create lookup table for group membership
+        //-----------------------------------------
 
         if (! $core_only) {
             $group_manager = new Group_Manager_Driver();
@@ -206,16 +206,14 @@ class User_Manager_Driver extends User_Manager_Engine
                 }
             }
         }
-        
-        // Grab user info from LDAP
-        //-------------------------
+
+        // Get user info from directory
+        //-----------------------------
 
         if ($this->ldaph === NULL)
             $this->ldaph = Utilities::get_ldap_handle();
 
         $search = '';
-
-        $userlist = array();
 
         $result = $this->ldaph->search(
             "(&(cn=*)(objectclass=posixAccount)$search)",
@@ -224,6 +222,11 @@ class User_Manager_Driver extends User_Manager_Engine
 
         $this->ldaph->sort($result, 'uid');
         $entry = $this->ldaph->get_first_entry($result);
+
+        // Load user info from extensions, plugins, etc.
+        //----------------------------------------------
+
+        $user_list = array();
 
         while ($entry) {
             $attributes = $this->ldaph->get_attributes($entry);
@@ -248,16 +251,18 @@ class User_Manager_Driver extends User_Manager_Engine
             // Get user info
             //--------------
 
-            $userinfo['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
+            $user_info = array();
+            $user_info['core'] = Utilities::convert_attributes_to_array($attributes, $this->info_map);
 
             if (! $core_only) {
+
                 // Add group memberships
                 //----------------------
 
                 if (array_key_exists($username, $group_lookup))
-                    $userinfo['groups'] = $group_lookup[$username];
+                    $user_info['groups'] = $group_lookup[$username];
                 else
-                    $userinfo['groups'] = array();
+                    $user_info['groups'] = array();
 
                 // Add user info from extensions
                 //------------------------------
@@ -269,7 +274,7 @@ class User_Manager_Driver extends User_Manager_Engine
                     $extension = Utilities::load_user_extension($details);
 
                     if (method_exists($extension, 'get_info_hook')) {
-                        $userinfo['extensions'][$extension_name] = $extension->get_info_hook($attributes);
+                        $user_info['extensions'][$extension_name] = $extension->get_info_hook($attributes);
                     }
                 }
 
@@ -280,20 +285,19 @@ class User_Manager_Driver extends User_Manager_Engine
 
                 foreach ($plugins as $plugin => $details) {
                     $plugin_name = $plugin . '_plugin';
-                    $state = (in_array($plugin_name, $userinfo['groups'])) ? TRUE : FALSE;
-                    $userinfo['plugins'][$plugin] = $state;
+                    $state = (in_array($plugin_name, $user_info['groups'])) ? TRUE : FALSE;
+                    $user_info['plugins'][$plugin] = $state;
                 }
             }
 
-            // FIXME: review this for Active Directory
-            if (! isset($userinfo['core']['full_name']))
-                $userinfo['core']['full_name'] = $userinfo['core']['first_name'] . ' ' . $userinfo['core']['last_name'];
+            if (! isset($user_info['core']['full_name']))
+                $user_info['core']['full_name'] = $user_info['core']['first_name'] . ' ' . $user_info['core']['last_name'];
 
-            $userlist[$username] = $userinfo;
+            $user_list[$username] = $user_info;
 
             $entry = $this->ldaph->next_entry($entry);
         }
 
-        return $userlist;
+        return $user_list;
     }
 }
