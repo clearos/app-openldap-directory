@@ -55,21 +55,24 @@ clearos_load_language('groups');
 // Classes
 //--------
 
-use \clearos\apps\base\Engine as Engine;
-use \clearos\apps\base\File as File;
 use \clearos\apps\groups\Group_Engine as Group_Engine;
+use \clearos\apps\groups\Group_Manager_Engine as Group_Manager_Engine;
+use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\Group_Driver as Group_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
-use \clearos\apps\openldap_directory\User_Driver as User_Driver;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
 
-clearos_load_library('base/Engine');
-clearos_load_library('base/File');
 clearos_load_library('groups/Group_Engine');
+clearos_load_library('groups/Group_Manager_Engine');
+clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/Group_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
-clearos_load_library('openldap_directory/User_Driver');
 clearos_load_library('openldap_directory/Utilities');
+
+// Exceptions
+//-----------
+
+use \Exception as Exception;
 
 ///////////////////////////////////////////////////////////////////////////////
 // C L A S S
@@ -87,7 +90,7 @@ clearos_load_library('openldap_directory/Utilities');
  * @link       http://www.clearfoundation.com/docs/developer/apps/openldap_directory/
  */
 
-class Group_Manager_Driver extends Engine
+class Group_Manager_Driver extends Group_Manager_Engine
 {
     ///////////////////////////////////////////////////////////////////////////////
     // V A R I A B L E S
