@@ -260,7 +260,7 @@ class Utilities extends Engine
      * @return void
      */
 
-    public static function get_usermap()
+    public static function get_usermap($type)
     {
         clearos_profile(__METHOD__, __LINE__);
 
