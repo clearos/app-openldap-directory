@@ -42,7 +42,7 @@ $app['core_obsoletes'] = array(
 
 $app['requires'] = array(
     'app-users',
-    'app-groups => 1:1.2.3',
+    'app-groups => 1:1.5.10',
 );
 
 $app['core_provides'] = array(

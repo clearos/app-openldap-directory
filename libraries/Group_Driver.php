@@ -901,6 +901,8 @@ class Group_Driver extends Group_Engine
             $info['core']['type'] = Group_Engine::TYPE_WINDOWS;
         else if (in_array($this->group_name, Group_Engine::$builtin_list))
             $info['core']['type'] = Group_Engine::TYPE_BUILTIN;
+        else if (in_array($this->group_name, Group_Engine::$hidden_list))
+            $info['core']['type'] = Group_Engine::TYPE_HIDDEN;
         else
             $info['core']['type'] = Group_Engine::TYPE_NORMAL;
 
