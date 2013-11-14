@@ -923,17 +923,15 @@ class Group_Driver extends Group_Engine
     {
         clearos_profile(__METHOD__, __LINE__);
 
-        // Validate group_name
+        $directory_info = $this->_load_group_from_directory();
+
+        if (! empty($directory_info))
+            return $directory_info;
 
         $posix_info = $this->_load_group_from_posix();
 
         if (! empty($posix_info))
             return $posix_info;
-
-        $directory_info = $this->_load_group_from_directory();
-
-        if (! empty($directory_info))
-            return $directory_info;
 
         throw new Group_Not_Found_Exception($this->group_name);
     }
