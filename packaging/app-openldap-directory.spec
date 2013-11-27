@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory
 Epoch: 1
-Version: 1.5.6
+Version: 1.5.15
 Release: 1%{dist}
 Summary: Directory Server
 License: GPLv3
@@ -11,7 +11,7 @@ Buildarch: noarch
 Requires: %{name}-core = 1:%{version}-%{release}
 Requires: app-base
 Requires: app-users
-Requires: app-groups => 1:1.2.3
+Requires: app-groups => 1:1.5.10
 Obsoletes: app-directory-server
 
 %description
@@ -103,7 +103,6 @@ exit 0
 %files core
 %defattr(-,root,root)
 %exclude /usr/clearos/apps/openldap_directory/packaging
-%exclude /usr/clearos/apps/openldap_directory/tests
 %dir /usr/clearos/apps/openldap_directory
 %dir /var/clearos/openldap_directory
 %dir /var/clearos/openldap_directory/backup
