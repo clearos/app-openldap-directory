@@ -31,15 +31,6 @@ $app['controllers']['openldap_directory']['title'] = lang('openldap_directory_ap
 // Packaging
 /////////////////////////////////////////////////////////////////////////////
 
-// FIXME: beta only - remove for final
-$app['obsoletes'] = array(
-    'app-directory-server',
-);
-
-$app['core_obsoletes'] = array(
-    'app-directory-server-core',
-);
-
 $app['requires'] = array(
     'app-users',
     'app-groups => 1:1.5.10',
