@@ -120,6 +120,7 @@ class Information extends ClearOS_Controller
             $data['computers_container'] = $this->openldap->get_computers_container();
             $data['groups_container'] = $this->openldap->get_groups_container();
             $data['users_container'] = $this->openldap->get_users_container();
+            $data['accounts_dn'] = $this->openldap->get_accounts_dn();
         } catch (Engine_Exception $e) {
             $data['code'] = 1;
             $data['error_message'] = clearos_exception_message($e);

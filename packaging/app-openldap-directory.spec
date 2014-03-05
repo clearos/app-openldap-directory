@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory
 Epoch: 1
-Version: 1.5.15
+Version: 1.5.18
 Release: 1%{dist}
 Summary: Directory Server
 License: GPLv3
@@ -12,7 +12,6 @@ Requires: %{name}-core = 1:%{version}-%{release}
 Requires: app-base
 Requires: app-users
 Requires: app-groups => 1:1.5.10
-Obsoletes: app-directory-server
 
 %description
 The Directory Server provides information on users, groups and systems.  You can provide read only access to your directory to integrate third party applications both locally and in the cloud.
@@ -42,7 +41,6 @@ Requires: openldap-clients
 Requires: openldap-servers
 Requires: pam_ldap
 Requires: webconfig-php-ldap
-Obsoletes: app-directory-server-core
 
 %description core
 The Directory Server provides information on users, groups and systems.  You can provide read only access to your directory to integrate third party applications both locally and in the cloud.
@@ -62,6 +60,8 @@ install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/backup
 install -d -m 0755 %{buildroot}/var/clearos/openldap_directory/extensions
 install -d -m 0775 %{buildroot}/var/clearos/openldap_directory/lock
 install -D -m 0755 packaging/app-openldap-directory-initialize %{buildroot}/usr/sbin/app-openldap-directory-initialize
+install -D -m 0644 packaging/clearos_anonymous.conf %{buildroot}/var/clearos/ldap/synchronize/clearos_anonymous.conf
+install -D -m 0644 packaging/clearos_password_protected.conf %{buildroot}/var/clearos/ldap/synchronize/clearos_password_protected.conf
 install -D -m 0644 packaging/filewatch-openldap-directory-mode.conf %{buildroot}/etc/clearsync.d/filewatch-openldap-directory-mode.conf
 install -D -m 0644 packaging/nslcd.conf %{buildroot}/var/clearos/ldap/synchronize/nslcd.conf
 install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/accounts/drivers/openldap_directory.php
@@ -112,6 +112,8 @@ exit 0
 /usr/clearos/apps/openldap_directory/language
 /usr/clearos/apps/openldap_directory/libraries
 /usr/sbin/app-openldap-directory-initialize
+/var/clearos/ldap/synchronize/clearos_anonymous.conf
+/var/clearos/ldap/synchronize/clearos_password_protected.conf
 /etc/clearsync.d/filewatch-openldap-directory-mode.conf
 /var/clearos/ldap/synchronize/nslcd.conf
 /var/clearos/accounts/drivers/openldap_directory.php

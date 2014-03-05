@@ -57,6 +57,10 @@ echo field_view(lang('ldap_bind_dn'), '', 'bind_dn');
 echo field_view(lang('ldap_bind_password'), '', 'bind_password');
 echo fieldset_footer();
 
+echo fieldset_header(lang('openldap_directory_accounts_access'));
+echo field_view(lang('openldap_directory_accounts_dn'), '', 'accounts_dn');
+echo fieldset_footer();
+
 echo fieldset_header(lang('ldap_containers'));
 echo field_view(lang('users_users'), '', 'users_container');
 echo field_view(lang('groups_groups'), '', 'groups_container');

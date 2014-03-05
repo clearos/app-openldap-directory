@@ -122,10 +122,16 @@ class OpenLDAP extends Engine
     const DEFAULT_DOMAIN = 'system.lan';
     const CONSTANT_BASE_DB_NUM = 3;
 
+    // Access types
+    const ACCESS_DISABLED = 'disabled';
+    const ACCESS_ANONYMOUS = 'anonymous';
+    const ACCESS_PASSWORD_ACCESS = 'password';
+
     // Paths
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
     const COMMAND_SLAPCAT = '/usr/sbin/slapcat';
     const COMMAND_INITIALIZE = '/usr/sbin/app-openldap-directory-initialize';
+    const FILE_CONFIG = '/etc/openldap/slapd.conf';
     const FILE_INITIALIZING = '/var/clearos/openldap_directory/lock/initializing';
     const FILE_READY_FOR_EXTENSIONS = '/var/clearos/openldap_directory/ready_for_extensions';
     const PATH_LDAP_BACKUP = '/var/clearos/openldap_directory/backup/';
@@ -137,6 +143,8 @@ class OpenLDAP extends Engine
     const SUFFIX_SERVERS = 'ou=Servers';
     const SUFFIX_USERS = 'ou=Users,ou=Accounts';
     const SUFFIX_PASSWORD_POLICIES = 'ou=PasswordPolicies,ou=Accounts';
+    const SUFFIX_ACCOUNTS_DN = 'cn=accounts,ou=Internal';
+ 
     const OU_PASSWORD_POLICIES = 'PasswordPolicies';
     const CN_MASTER = 'cn=Master';
     const DRIVER_NAME = 'openldap_directory';
@@ -158,6 +166,63 @@ class OpenLDAP extends Engine
     public function __construct()
     {
         clearos_profile(__METHOD__, __LINE__);
+    }
+
+    /**
+     * Returns state of accounts access.
+     *
+     * @return boolean state of accounts access
+     */
+
+    public function get_accounts_access()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $file = new File(self::FILE_CONFIG);
+        $lines = $file->get_contents_as_array();
+
+        foreach ($lines as $line) {
+            if (preg_match('/^include\s+\/etc\/openldap\/clearos_anonymous.conf\s*$/', $line))
+                return self::ACCESS_ANONYMOUS;
+
+            if (preg_match('/^include\s+\/etc\/openldap\/clearos_password_protected.conf\s*$/', $line))
+                return self::ACCESS_PASSWORD_ACCESS;
+        }
+
+        return self::ACCESS_DISABLED;
+    }
+
+    /**
+     * Returns accounts access types.
+     *
+     * @return array types of accounts access
+     */
+
+    public function get_accounts_access_types()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $types = array(
+            self::ACCESS_DISABLED => lang('base_disabled'),
+            self::ACCESS_ANONYMOUS => lang('openldap_directory_anonymous'),
+            self::ACCESS_PASSWORD_ACCESS => lang('openldap_directory_password_access'),
+        );
+
+        return $types;
+    }
+
+    /**
+     * Returns the accounts DN.
+     *
+     * @return string accounts DN
+     * @throws Engine_Exception
+     */
+
+    public function get_accounts_dn()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        return self::SUFFIX_ACCOUNTS_DN . ',' . $this->get_base_dn();
     }
 
     /** 
@@ -438,6 +503,68 @@ class OpenLDAP extends Engine
     }
 
     /**
+     * Sets type of accounts access.
+     *
+     * @param string $type type
+     *
+     * @return void
+     */
+
+    public function set_accounts_access($type, $password = NULL)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        Validation_Exception::is_valid($this->validate_accounts_access($type));
+
+        $current_type = $this->get_accounts_access();
+
+        if (!empty($password)) {
+            Validation_Exception::is_valid($this->validate_password($password));
+            $this->_initialize_accounts_dn($password);
+        }
+
+        // Bail if nothing needs to be done
+        if ($current_type == $type)
+            return;
+
+        // There are two instances of "access to *" references in slapd.conf,
+        // but we want the one near the end of the file.  Used line_count.
+
+        $file = new File(self::FILE_CONFIG);
+        $lines = $file->get_contents_as_array();
+        $number_of_lines = count($lines);
+        $line_count = 0;
+        $check_newline = FALSE;
+
+        $new_lines = array();
+
+        foreach ($lines as $line) {
+            $line_count++;
+
+            if (preg_match('/^access\s+to\s+\*\s*$/', $line) && (($number_of_lines - $line_count) < 8)) {
+                if ($type === self::ACCESS_ANONYMOUS) {
+                    $new_lines[] = 'include /etc/openldap/clearos_anonymous.conf';
+                    $new_lines[] = '';
+                } else if ($type === self::ACCESS_PASSWORD_ACCESS) {
+                    $new_lines[] = 'include /etc/openldap/clearos_password_protected.conf';
+                    $new_lines[] = '';
+                }
+            } else if (preg_match('/^include\s+\/etc\/openldap\/clearos_.*conf\s*$/', $line)) {
+                $check_newline = TRUE;
+                continue;
+            } else if ($check_newline) {
+                $check_newlines = FALSE;
+                if (preg_match('/^\s*$/', $line))
+                    continue;
+            }
+
+            $new_lines[] = $line;
+        }
+
+        $file->dump_contents_from_array($new_lines);
+    }
+
+    /**
      * Changes base domain used in directory
      *
      * @param string $domain domain
@@ -477,6 +604,22 @@ class OpenLDAP extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Validates accounts access type.
+     *
+     * @param string $type account access type
+     *
+     * @return string error message if type is invalid
+     */
+
+    public function validate_accounts_access($type)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        if (!array_key_exists($type, $this->get_accounts_access_types()))
+            return lang('openldap_directory_accounts_access_invalid');
+    }
+
+    /**
      * Validates domain.
      *
      * @param string $domain domain
@@ -501,6 +644,21 @@ class OpenLDAP extends Engine
      */
 
     public function validate_id($id)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // TODO
+    }
+
+    /**
+     * Validates account password.
+     *
+     * @param string $password password
+     *
+     * @return string error message if password is invalid
+     */
+
+    public function validate_password($password)
     {
         clearos_profile(__METHOD__, __LINE__);
 
@@ -629,6 +787,49 @@ class OpenLDAP extends Engine
             // Not fatal
         }
     }
+
+    /**
+     * Initializes accounts access object.
+     *
+     * @return void
+     * @throws Engine_Exception
+     */
+
+    protected function _initialize_accounts_dn($password)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Create accouts access account in LDAP
+        //--------------------------------------
+
+        $ldap_object = array();
+        $ldap_object['objectClass'] = array(
+            'top',
+            'inetOrgPerson',
+        );
+
+        $ldap_object['userPassword'] = '{sha}' . base64_encode(pack('H*', sha1($password)));
+        $ldap_object['uid'] = 'accounts';
+        $ldap_object['cn'] = 'accounts';
+        $ldap_object['sn'] = 'Accounts Access User';
+
+        $ldaph = Utilities::get_ldap_handle();
+        $dn = $this->get_accounts_dn();
+
+        for ($inx = 1; $inx < 3; $inx++) {
+            try {
+                if (! $ldaph->exists($dn))
+                    $ldaph->add($dn, $ldap_object);
+                else
+                    $ldaph->modify($dn, $ldap_object);
+
+                break;
+            } catch (Exception $e) {
+                sleep(1);
+            }
+        }
+    }
+
 
     /**
      * Removes overlapping groups and users found in Posix.

@@ -80,6 +80,15 @@ $(document).ready(function() {
     }
 
     getDirectoryInfo();
+
+    // Policies
+    //---------
+
+    changePolicy();
+
+    $('#access_type').change(function() {
+        changePolicy();
+    });
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -159,6 +168,7 @@ function showDirectoryInfo(payload) {
         $("#mode_text").html(payload.mode_text);
         $("#base_dn_text").html(payload.base_dn);
         $("#bind_dn_text").html(payload.bind_dn);
+        $("#accounts_dn_text").html(payload.accounts_dn);
         $("#bind_password_text").html(payload.bind_password);
         $("#users_container_text").html(payload.users_container);
         $("#groups_container_text").html(payload.groups_container);
@@ -174,6 +184,16 @@ function showDirectoryInfo(payload) {
         $("#directory_configuration").hide();
         if (payload.ldap_system_message && (payload.ldap_system_message.length > 0))
             $("#initializing_status").html('<div class="theme-loading-normal">' + payload.ldap_system_message + '</div>');
+    }
+}
+
+function changePolicy() {
+    current_type = $('#access_type').val();
+
+    if (current_type == 'password') {
+        $('#access_password_field').show();
+    } else {
+        $('#access_password_field').hide();
     }
 }
 
