@@ -63,6 +63,7 @@ use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\Script as Script;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\Nslcd as Nslcd;
 use \clearos\apps\mode\Mode_Engine as Mode_Engine;
@@ -71,12 +72,14 @@ use \clearos\apps\network\Network_Utils as Network_Utils;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\Accounts_Driver as Accounts_Driver;
 use \clearos\apps\openldap_directory\User_Driver as User_Driver;
+use \clearos\apps\openldap_directory\Utilities as Utilities;
 
 clearos_load_library('accounts/Accounts_Configuration');
 clearos_load_library('accounts/Nscd');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
+clearos_load_library('base/Script');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/Nslcd');
 clearos_load_library('mode/Mode_Engine');
@@ -85,6 +88,7 @@ clearos_load_library('network/Network_Utils');
 clearos_load_library('openldap/LDAP_Driver');
 clearos_load_library('openldap_directory/Accounts_Driver');
 clearos_load_library('openldap_directory/User_Driver');
+clearos_load_library('openldap_directory/Utilities');
 
 // Exceptions
 //-----------
@@ -370,10 +374,9 @@ class OpenLDAP extends Engine
         // Lock state file
         //----------------
 
-        $file = new File(self::FILE_INITIALIZING);
-        $initializing_lock = fopen(self::FILE_INITIALIZING, 'w');
+        $script = new Script();
 
-        if (!flock($initializing_lock, LOCK_EX | LOCK_NB)) {
+        if ($script->lock() !== TRUE) {
             clearos_log('openldap_directory', 'local initialization is already running');
             return;
         }
@@ -394,17 +397,17 @@ class OpenLDAP extends Engine
             $sysmode = Mode_Factory::create();
             $mode = $sysmode->get_mode();
 
-            if ($mode === Mode_Engine::MODE_MASTER) {
-                if ($ldap->is_initialized())
+            if ($mode != Mode_Engine::MODE_SLAVE) {
+                if ($ldap->is_initialized()) {
+                    clearos_log('openldap_directory', 'setting base domain name');
                     $ldap->set_base_internet_domain($domain);
-                else
+                } else if ($mode === Mode_Engine::MODE_MASTER) {
+                    clearos_log('openldap_directory', 'initializing master mode');
                     $ldap->initialize_master($domain, NULL, $force);
-
-            } else if ($mode === Mode_Engine::MODE_STANDALONE) {
-                if ($ldap->is_initialized())
-                    $ldap->set_base_internet_domain($domain);
-                else
+                } else if ($mode === Mode_Engine::MODE_STANDALONE) {
+                    clearos_log('openldap_directory', 'initializing standalone mode');
                     $ldap->initialize_standalone($domain, NULL, $force);
+                }
             }
 
             // Post LDAP tasks
@@ -419,7 +422,7 @@ class OpenLDAP extends Engine
             clearos_log('openldap_directory', 'initializing caching');
             $this->_initialize_caching();
         } catch (Exception $e) {
-            $file->delete();
+            $script->unlock();
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
@@ -446,11 +449,8 @@ class OpenLDAP extends Engine
         // (i.e. no Samba) or run the Samba extensions at a later time.
         // 
         // This little sleep gives the Samba initialization process a chance to
-        // get the ball rolling before the system gives the "okay, I'm initialize"
-        // go ahead.  Notably, webconfig would show the "Account Manager" with a
-        // "busy initializing OpenLDAP whirly", then a few seconds with the
-        // standard account manager screen, followed 3 seconds later with a
-        // "busy initalizing extensions whirly".  That's technically correct, but...
+        // get the ball rolling before the system gives the "okay, I'm initialized"
+        // go ahead.
 
         try {
             $ready_file = new File(self::FILE_READY_FOR_EXTENSIONS);
@@ -471,11 +471,7 @@ class OpenLDAP extends Engine
         // Cleanup file / file lock
         //-------------------------
 
-        flock($initializing_lock, LOCK_UN);
-        fclose($initializing_lock);
-
-        if ($file->exists())
-            $file->delete();
+        $script->unlock();
     }
 
     /**
