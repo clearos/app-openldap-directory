@@ -5,7 +5,7 @@
 /////////////////////////////////////////////////////////////////////////////
 
 $app['basename'] = 'openldap_directory';
-$app['version'] = '1.5.18';
+$app['version'] = '1.5.40';
 $app['release'] = '1';
 $app['vendor'] = 'ClearFoundation';
 $app['packager'] = 'ClearFoundation';
@@ -47,14 +47,15 @@ $app['core_provides'] = array(
 
 $app['core_requires'] = array(
     'app-accounts-core >= 1:1.5.4',
+    'app-events-core',
     'app-groups-core',
     'app-ldap-core >= 1:1.4.5',
+    'app-mode-core >= 1:1.5.40',
     'app-network-core',
     'app-openldap-core >= 1:1.4.8',
     'app-samba-extension-core',
     'app-users-core',
     'authconfig',
-    'csplugin-filewatch',
     'nss-pam-ldapd',
     'nscd',
     'openldap',
@@ -65,12 +66,15 @@ $app['core_requires'] = array(
 );
 
 $app['core_file_manifest'] = array(
-    'filewatch-openldap-directory-mode.conf'=> array('target' => '/etc/clearsync.d/filewatch-openldap-directory-mode.conf'),
     'openldap_directory.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap_directory.php' ),
     'nslcd.conf' => array( 'target' => '/var/clearos/ldap/synchronize/nslcd.conf' ),
     'clearos_anonymous.conf' => array( 'target' => '/var/clearos/ldap/synchronize/clearos_anonymous.conf' ),
     'clearos_password_protected.conf' => array( 'target' => '/var/clearos/ldap/synchronize/clearos_password_protected.conf' ),
     'pam_ldap.conf' => array( 'target' => '/var/clearos/ldap/synchronize/pam_ldap.conf' ),
+    'mode-event'=> array(
+        'target' => '/var/clearos/events/mode/openldap_directory',
+        'mode' => '0755'
+    ),
     'app-openldap-directory-initialize' => array(
         'target' => '/usr/sbin/app-openldap-directory-initialize',
         'mode' => '0755',
