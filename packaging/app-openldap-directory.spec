@@ -1,7 +1,7 @@
 
 Name: app-openldap-directory
 Epoch: 1
-Version: 1.5.18
+Version: 1.5.40
 Release: 1%{dist}
 Summary: Directory Server
 License: GPLv3
@@ -26,14 +26,15 @@ Provides: system-groups-driver
 Provides: system-users-driver
 Requires: app-base-core
 Requires: app-accounts-core >= 1:1.5.4
+Requires: app-events-core
 Requires: app-groups-core
 Requires: app-ldap-core >= 1:1.4.5
+Requires: app-mode-core >= 1:1.5.40
 Requires: app-network-core
 Requires: app-openldap-core >= 1:1.4.8
 Requires: app-samba-extension-core
 Requires: app-users-core
 Requires: authconfig
-Requires: csplugin-filewatch
 Requires: nss-pam-ldapd
 Requires: nscd
 Requires: openldap
@@ -62,7 +63,7 @@ install -d -m 0775 %{buildroot}/var/clearos/openldap_directory/lock
 install -D -m 0755 packaging/app-openldap-directory-initialize %{buildroot}/usr/sbin/app-openldap-directory-initialize
 install -D -m 0644 packaging/clearos_anonymous.conf %{buildroot}/var/clearos/ldap/synchronize/clearos_anonymous.conf
 install -D -m 0644 packaging/clearos_password_protected.conf %{buildroot}/var/clearos/ldap/synchronize/clearos_password_protected.conf
-install -D -m 0644 packaging/filewatch-openldap-directory-mode.conf %{buildroot}/etc/clearsync.d/filewatch-openldap-directory-mode.conf
+install -D -m 0755 packaging/mode-event %{buildroot}/var/clearos/events/mode/openldap_directory
 install -D -m 0644 packaging/nslcd.conf %{buildroot}/var/clearos/ldap/synchronize/nslcd.conf
 install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/accounts/drivers/openldap_directory.php
 install -D -m 0644 packaging/pam_ldap.conf %{buildroot}/var/clearos/ldap/synchronize/pam_ldap.conf
@@ -114,7 +115,7 @@ exit 0
 /usr/sbin/app-openldap-directory-initialize
 /var/clearos/ldap/synchronize/clearos_anonymous.conf
 /var/clearos/ldap/synchronize/clearos_password_protected.conf
-/etc/clearsync.d/filewatch-openldap-directory-mode.conf
+/var/clearos/events/mode/openldap_directory
 /var/clearos/ldap/synchronize/nslcd.conf
 /var/clearos/accounts/drivers/openldap_directory.php
 /var/clearos/ldap/synchronize/pam_ldap.conf

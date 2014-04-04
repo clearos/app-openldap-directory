@@ -358,8 +358,6 @@ class Group_Driver extends Group_Engine
             $this->_load_group_info();
         } catch (Group_Not_Found_Exception $e) {
             return FALSE;
-        } catch (Exception $e) {
-            throw new Engine_Exception($e->GetMessage(), COMMON_ERROR);
         }
 
         return TRUE;
