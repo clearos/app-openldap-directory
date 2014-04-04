@@ -134,10 +134,13 @@ class OpenLDAP extends Engine
     // Paths
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
     const COMMAND_SLAPCAT = '/usr/sbin/slapcat';
+    const COMMAND_SLAPADD = '/usr/sbin/slapadd';
     const COMMAND_INITIALIZE = '/usr/sbin/app-openldap-directory-initialize';
     const FILE_CONFIG = '/etc/openldap/slapd.conf';
     const FILE_INITIALIZING = '/var/clearos/openldap_directory/lock/initializing';
     const FILE_READY_FOR_EXTENSIONS = '/var/clearos/openldap_directory/ready_for_extensions';
+    const FILE_LDIF_TEMPLATE = 'deploy/accounts.ldif.template';
+    const FILE_LDIF_IMPORT = '/var/clearos/openldap_directory/accounts.ldif';
     const PATH_LDAP_BACKUP = '/var/clearos/openldap_directory/backup/';
     const PATH_LDAP = '/var/lib/ldap';
 
@@ -408,6 +411,10 @@ class OpenLDAP extends Engine
                     clearos_log('openldap_directory', 'initializing standalone mode');
                     $ldap->initialize_standalone($domain, NULL, $force);
                 }
+
+                clearos_log('openldap_directory', 'adding account objects');
+                $this->_add_account_objects($domain);
+die(); // FIXME
             }
 
             // Post LDAP tasks
@@ -666,6 +673,46 @@ class OpenLDAP extends Engine
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
+     * Adds account objects to LDAP.
+     *
+     * @param string $domain base domain
+     *
+     * @return void
+     * @throws EngineException, ValidationException
+     */
+
+    protected function _add_account_objects($domain)
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        // Replace @@@base_dn@@@ in the template file
+        //-------------------------------------------
+        $base_dn = preg_replace('/\./', ',dc=', $domain);
+        $base_dn = "dc=$base_dn";
+
+        $ldif_template = clearos_app_base('openldap_directory') . '/' . self::FILE_LDIF_TEMPLATE;
+
+        $file = new File($ldif_template);
+
+        $contents = $file->get_contents();
+        $contents = preg_replace("/\@\@\@base_dn\@\@\@/", $base_dn, $contents);
+// pete
+        $file = new File(self::FILE_LDIF_IMPORT, TRUE);
+        if ($file->exists())
+            $file->delete();
+
+        $file->create('root', 'root', '0644');
+        $file->add_lines("$contents\n");
+
+        // Import the LDIF file
+        //---------------------
+
+        $shell = new Shell();
+        $shell->execute(self::COMMAND_SLAPADD, '-n3 -l ' . self::FILE_LDIF_IMPORT, TRUE);
+        // $file->delete();
+    }
+
+    /**
      * Imports an LDIF file.
      *
      * @param string $ldif LDIF file
@@ -676,6 +723,7 @@ class OpenLDAP extends Engine
 
     protected function _import_ldif($ldif)
     {
+        // FIXME - this looks unused
         clearos_profile(__METHOD__, __LINE__);
 
         $ldap = new LDAP_Driver();
