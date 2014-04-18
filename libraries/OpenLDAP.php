@@ -63,7 +63,7 @@ use \clearos\apps\accounts\Nscd as Nscd;
 use \clearos\apps\base\Engine as Engine;
 use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
-use \clearos\apps\base\Script as Script;
+use \clearos\apps\base\Lock as Lock;
 use \clearos\apps\base\Shell as Shell;
 use \clearos\apps\ldap\Nslcd as Nslcd;
 use \clearos\apps\mode\Mode_Engine as Mode_Engine;
@@ -79,7 +79,7 @@ clearos_load_library('accounts/Nscd');
 clearos_load_library('base/Engine');
 clearos_load_library('base/File');
 clearos_load_library('base/Folder');
-clearos_load_library('base/Script');
+clearos_load_library('base/Lock');
 clearos_load_library('base/Shell');
 clearos_load_library('ldap/Nslcd');
 clearos_load_library('mode/Mode_Engine');
@@ -137,7 +137,6 @@ class OpenLDAP extends Engine
     const COMMAND_SLAPADD = '/usr/sbin/slapadd';
     const COMMAND_INITIALIZE = '/usr/sbin/app-openldap-directory-initialize';
     const FILE_CONFIG = '/etc/openldap/slapd.conf';
-    const FILE_INITIALIZING = '/var/clearos/openldap_directory/lock/initializing';
     const FILE_READY_FOR_EXTENSIONS = '/var/clearos/openldap_directory/ready_for_extensions';
     const FILE_LDIF_TEMPLATE = 'deploy/accounts.ldif.template';
     const FILE_LDIF_IMPORT = '/var/clearos/openldap_directory/accounts.ldif';
@@ -377,9 +376,9 @@ class OpenLDAP extends Engine
         // Lock state file
         //----------------
 
-        $script = new Script();
+        $lock = new Lock('openldap_directory_init');
 
-        if ($script->lock() !== TRUE) {
+        if ($lock->get_lock() !== TRUE) {
             clearos_log('openldap_directory', 'local initialization is already running');
             return;
         }
@@ -401,7 +400,7 @@ class OpenLDAP extends Engine
             $mode = $sysmode->get_mode();
 
             if ($mode != Mode_Engine::MODE_SLAVE) {
-                if ($ldap->is_initialized()) {
+                if ($ldap->is_initialized() && !$force) {
                     clearos_log('openldap_directory', 'setting base domain name');
                     $ldap->set_base_internet_domain($domain);
                 } else if ($mode === Mode_Engine::MODE_MASTER) {
@@ -414,7 +413,6 @@ class OpenLDAP extends Engine
 
                 clearos_log('openldap_directory', 'adding account objects');
                 $this->_add_account_objects($domain);
-die(); // FIXME
             }
 
             // Post LDAP tasks
@@ -429,7 +427,7 @@ die(); // FIXME
             clearos_log('openldap_directory', 'initializing caching');
             $this->_initialize_caching();
         } catch (Exception $e) {
-            $script->unlock();
+            $lock->unlock();
             throw new Engine_Exception(clearos_exception_message($e));
         }
 
@@ -478,7 +476,7 @@ die(); // FIXME
         // Cleanup file / file lock
         //-------------------------
 
-        $script->unlock();
+        $lock->unlock();
     }
 
     /**
@@ -696,7 +694,7 @@ die(); // FIXME
 
         $contents = $file->get_contents();
         $contents = preg_replace("/\@\@\@base_dn\@\@\@/", $base_dn, $contents);
-// pete
+
         $file = new File(self::FILE_LDIF_IMPORT, TRUE);
         if ($file->exists())
             $file->delete();
@@ -707,9 +705,18 @@ die(); // FIXME
         // Import the LDIF file
         //---------------------
 
+        $ldap = new LDAP_Driver();
+        $is_running = $ldap->get_running_state();
+
+        if ($is_running) 
+            $ldap->set_running_state(FALSE);
+
         $shell = new Shell();
         $shell->execute(self::COMMAND_SLAPADD, '-n3 -l ' . self::FILE_LDIF_IMPORT, TRUE);
         // $file->delete();
+
+        if ($is_running)
+            $ldap->set_running_state(TRUE);
     }
 
     /**

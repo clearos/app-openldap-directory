@@ -56,20 +56,22 @@ clearos_load_language('accounts');
 //--------
 
 use \clearos\apps\accounts\Accounts_Engine as Accounts_Engine;
-use \clearos\apps\base\File as File;
 use \clearos\apps\base\Folder as Folder;
+use \clearos\apps\base\Lock as Lock;
 use \clearos\apps\ldap\Nslcd as Nslcd;
 use \clearos\apps\openldap\LDAP_Driver as LDAP_Driver;
 use \clearos\apps\openldap_directory\OpenLDAP as OpenLDAP;
 use \clearos\apps\openldap_directory\Utilities as Utilities;
+use \clearos\apps\samba\OpenLDAP_Driver as OpenLDAP_Driver;
 
 clearos_load_library('accounts/Accounts_Engine');
-clearos_load_library('base/File');
 clearos_load_library('base/Folder');
+clearos_load_library('base/Lock');
 clearos_load_library('ldap/Nslcd');
 clearos_load_library('openldap/LDAP_Driver');
 clearos_load_library('openldap_directory/OpenLDAP');
 clearos_load_library('openldap_directory/Utilities');
+clearos_load_library('samba/OpenLDAP_Driver');
 
 // Exceptions
 //-----------
@@ -102,7 +104,6 @@ class Accounts_Driver extends Accounts_Engine
 
     const DRIVER_NAME = 'openldap_directory';
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
-    const FILE_INITIALIZING = '/var/clearos/openldap_directory/lock/initializing';
     const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
 
     // Status codes for username/group/alias uniqueness
@@ -275,14 +276,10 @@ class Accounts_Driver extends Accounts_Engine
         // Check initializing
         //-------------------
 
-        $file = new File(self::FILE_INITIALIZING);
+        $lock = new Lock('openldap_directory_init');
 
-        if ($file->exists()) {
-            $initializing_lock = fopen(self::FILE_INITIALIZING, 'r');
-
-            if (!flock($initializing_lock, LOCK_SH | LOCK_NB))
-                return Accounts_Engine::STATUS_INITIALIZING;
-        }
+        if ($lock->is_locked())
+            return Accounts_Engine::STATUS_INITIALIZING;
 
         // Check initialized
         //------------------

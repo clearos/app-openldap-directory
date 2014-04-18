@@ -46,6 +46,7 @@ $app['core_provides'] = array(
 );
 
 $app['core_requires'] = array(
+    'app-base-core >= 1:1.5.40',
     'app-accounts-core >= 1:1.5.4',
     'app-events-core',
     'app-groups-core',
