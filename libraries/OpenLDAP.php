@@ -367,10 +367,12 @@ class OpenLDAP extends Engine
         $driver = new Accounts_Driver();
 
         if ($driver->is_initialized()) {
-            if ($force)
+            if ($force) {
                 $driver->set_initialized(FALSE);
-            else
+                $driver->set_ready(FALSE);
+            } else {
                 return;
+            }
         }
 
         // Lock state file
@@ -457,20 +459,14 @@ class OpenLDAP extends Engine
         // get the ball rolling before the system gives the "okay, I'm initialized"
         // go ahead.
 
-        try {
-            $ready_file = new File(self::FILE_READY_FOR_EXTENSIONS);
+        clearos_log('openldap_directory', 'accounts ready for extensions');
 
-            if (! $ready_file->exists())
-                $ready_file->create('root', 'root', '0644');
+        $driver->set_ready(TRUE);
 
-            sleep(15);
+        sleep(8);
 
-            $ready_file->delete();
-        } catch (Exception $e) {
-            // Not fatal
-        }
-
-        $driver->set_initialized();
+        clearos_log('openldap_directory', 'accounts initialized');
+        $driver->set_initialized(TRUE);
         $driver->synchronize();
 
         // Cleanup file / file lock

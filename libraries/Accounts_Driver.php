@@ -105,6 +105,7 @@ class Accounts_Driver extends Accounts_Engine
     const DRIVER_NAME = 'openldap_directory';
     const COMMAND_AUTHCONFIG = '/usr/sbin/authconfig';
     const PATH_EXTENSIONS = '/var/clearos/openldap_directory/extensions';
+    const FILE_READY_FOR_EXTENSIONS = '/var/clearos/openldap_directory/ready_for_extensions';
 
     // Status codes for username/group/alias uniqueness
     const STATUS_ALIAS_EXISTS = 'alias';
