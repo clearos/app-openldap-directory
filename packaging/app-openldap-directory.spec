@@ -26,7 +26,7 @@ Provides: system-groups-driver
 Provides: system-users-driver
 Requires: app-base-core
 Requires: app-base-core >= 1:1.5.40
-Requires: app-accounts-core >= 1:1.5.4
+Requires: app-accounts-core >= 1:1.5.40
 Requires: app-events-core
 Requires: app-groups-core
 Requires: app-ldap-core >= 1:1.4.5
