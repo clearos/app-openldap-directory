@@ -716,64 +716,6 @@ class OpenLDAP extends Engine
     }
 
     /**
-     * Imports an LDIF file.
-     *
-     * @param string $ldif LDIF file
-     *
-     * @return void
-     * @throws EngineException, ValidationException
-     */
-
-    protected function _import_ldif($ldif)
-    {
-        // FIXME - this looks unused
-        clearos_profile(__METHOD__, __LINE__);
-
-        $ldap = new LDAP_Driver();
-
-        clearos_log('openldap_directory', lang('ldap_preparing_import'));
-
-        // Shutdown LDAP if running
-        //-------------------------
-
-        $was_running = $ldap->get_running_state();
-
-        if ($was_running) {
-            clearos_log('openldap_directory', lang('ldap_shutting_down_ldap_server'));
-            $ldap->set_running_state(FALSE);
-        }
-
-        // Backup old LDAP
-        //----------------
-
-        $filename = self::PATH_LDAP_BACKUP . '/' . "backup-" . strftime("%m-%d-%Y-%H-%M-%S", time()) . ".ldif";
-        $this->export($filename);
-
-        // Clear out old database
-        //-----------------------
-
-        $folder = new Folder(self::PATH_LDAP);
-
-        $file_list = $folder->GetRecursiveListing();
-
-        foreach ($file_list as $filename) {
-            if (!preg_match('/DB_CONFIG$/', $filename)) {
-                $file = new File(self::PATH_LDAP . '/' . $filename, TRUE);
-                $file->delete();
-            }
-        }
-
-        // Import new database
-        //--------------------
-
-        clearos_log('openldap_directory', lang('ldap_importing_data'));
-
-        $shell = new Shell();
-        $shell->Execute(self::COMMAND_SLAPADD, '-n2 -l ' . self::FILE_ACCESSLOG_DATA, TRUE);
-        $shell->Execute(self::COMMAND_SLAPADD, '-n3 -l ' . $ldif, TRUE);
-    }
-
-    /**
      * Initializes authconfig.
      *
      * This method will update the nsswitch.conf and pam configuration.
