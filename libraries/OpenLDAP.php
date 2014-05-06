@@ -711,6 +711,12 @@ class OpenLDAP extends Engine
         $shell->execute(self::COMMAND_SLAPADD, '-n3 -l ' . self::FILE_LDIF_IMPORT, TRUE);
         // $file->delete();
 
+        // Fix file permissions
+        //---------------------
+
+        $folder = new Folder(self::PATH_LDAP);
+        $folder->chown('ldap', 'ldap', TRUE);
+
         if ($is_running)
             $ldap->set_running_state(TRUE);
     }
