@@ -6,3 +6,17 @@
 /usr/sbin/addsudo /usr/sbin/authconfig app-openldap-directory-core
 /usr/sbin/addsudo /usr/sbin/slapcat app-openldap-directory-core
 /usr/sbin/addsudo /usr/sbin/app-openldap-directory-initialize app-openldap-directory-core
+
+# Update group mappings depending on nslcd version
+#-------------------------------------------------
+
+IS_OLD=`/usr/sbin/nslcd --version | grep "^nss-pam-ldapd 0\.7\."`
+EXISTS=`grep "^map group uniqueMember" /etc/nslcd.conf`
+
+if ( [ -n "$IS_OLD" ] && [ -z "$EXISTS" ] ); then
+    logger -p local6.notice -t installer "app-opendlap-directory-core - adding group mapping"
+    echo "map group uniqueMember member" >> /etc/nslcd.conf
+elif ( [ -z "$IS_OLD" ] && [ -n "$EXISTS" ] ); then
+    logger -p local6.notice -t installer "app-opendlap-directory-core - removing deprecated group mapping"
+    sed -i -e '/^map group uniqueMember member/d' /etc/nslcd.conf
+fi
