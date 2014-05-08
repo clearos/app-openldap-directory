@@ -65,7 +65,6 @@ install -D -m 0755 packaging/app-openldap-directory-initialize %{buildroot}/usr/
 install -D -m 0644 packaging/clearos_anonymous.conf %{buildroot}/var/clearos/ldap/synchronize/clearos_anonymous.conf
 install -D -m 0644 packaging/clearos_password_protected.conf %{buildroot}/var/clearos/ldap/synchronize/clearos_password_protected.conf
 install -D -m 0755 packaging/mode-event %{buildroot}/var/clearos/events/mode/openldap_directory
-install -D -m 0644 packaging/nslcd.conf %{buildroot}/var/clearos/ldap/synchronize/nslcd.conf
 install -D -m 0644 packaging/openldap_directory.php %{buildroot}/var/clearos/accounts/drivers/openldap_directory.php
 install -D -m 0644 packaging/pam_ldap.conf %{buildroot}/var/clearos/ldap/synchronize/pam_ldap.conf
 
@@ -117,6 +116,5 @@ exit 0
 /var/clearos/ldap/synchronize/clearos_anonymous.conf
 /var/clearos/ldap/synchronize/clearos_password_protected.conf
 /var/clearos/events/mode/openldap_directory
-/var/clearos/ldap/synchronize/nslcd.conf
 /var/clearos/accounts/drivers/openldap_directory.php
 /var/clearos/ldap/synchronize/pam_ldap.conf

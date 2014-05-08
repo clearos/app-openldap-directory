@@ -10,13 +10,21 @@
 # Update group mappings depending on nslcd version
 #-------------------------------------------------
 
-IS_OLD=`/usr/sbin/nslcd --version | grep "^nss-pam-ldapd 0\.7\."`
-EXISTS=`grep "^map group uniqueMember" /etc/nslcd.conf`
+IS_OLD_NSLCD=`/usr/sbin/nslcd --version | grep "^nss-pam-ldapd 0\.7\."`
+IS_OLD_CONFIG=`grep "^map group uniqueMember" /var/clearos/ldap/synchronize/nslcd.conf 2>/dev/null`
 
-if ( [ -n "$IS_OLD" ] && [ -z "$EXISTS" ] ); then
-    logger -p local6.notice -t installer "app-opendlap-directory-core - adding group mapping"
-    echo "map group uniqueMember member" >> /etc/nslcd.conf
-elif ( [ -z "$IS_OLD" ] && [ -n "$EXISTS" ] ); then
-    logger -p local6.notice -t installer "app-opendlap-directory-core - removing deprecated group mapping"
-    sed -i -e '/^map group uniqueMember member/d' /etc/nslcd.conf
+if [ ! -e /var/clearos/ldap/synchronize/nslcd.conf ]; then
+    if [ -n "$IS_OLD_NSLCD" ]; then
+        logger -p local6.notice -t installer "app-opendlap-directory-core - adding 0.7.x nslcd.conf"
+        cp /usr/clearos/apps/openldap_directory/deploy/nslcd07x.conf /var/clearos/ldap/synchronize/nslcd.conf
+    else
+        logger -p local6.notice -t installer "app-opendlap-directory-core - adding 0.8+ nslcd.conf"
+        cp /usr/clearos/apps/openldap_directory/deploy/nslcd.conf /var/clearos/ldap/synchronize/nslcd.conf
+    fi
+else
+    if ( [ -z "$IS_OLD_NSLCD" ] && [ -n "$IS_OLD_CONFIG" ] ); then
+        logger -p local6.notice -t installer "app-opendlap-directory-core - upgrading to 0.8+ nslcd.conf"
+        cp /usr/clearos/apps/openldap_directory/deploy/nslcd.conf /var/clearos/ldap/synchronize/nslcd.conf
+        [ -x /usr/sbin/ldap-synchronize ] && /usr/sbin/ldap-synchronize
+    fi
 fi

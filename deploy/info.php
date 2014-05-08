@@ -68,7 +68,6 @@ $app['core_requires'] = array(
 
 $app['core_file_manifest'] = array(
     'openldap_directory.php' => array( 'target' => '/var/clearos/accounts/drivers/openldap_directory.php' ),
-    'nslcd.conf' => array( 'target' => '/var/clearos/ldap/synchronize/nslcd.conf' ),
     'clearos_anonymous.conf' => array( 'target' => '/var/clearos/ldap/synchronize/clearos_anonymous.conf' ),
     'clearos_password_protected.conf' => array( 'target' => '/var/clearos/ldap/synchronize/clearos_password_protected.conf' ),
     'pam_ldap.conf' => array( 'target' => '/var/clearos/ldap/synchronize/pam_ldap.conf' ),
