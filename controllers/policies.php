@@ -111,6 +111,18 @@ class Policies extends ClearOS_Controller
         $this->load->library('openldap_directory/Accounts_Driver');
         $this->load->library('openldap_directory/OpenLDAP');
 
+        // Bail if driver not set
+        //-----------------------
+
+        try {
+            $data['initialized'] = $this->accounts_driver->is_initialized();
+        } catch (Exception $e) {
+            $this->page->view_exception($e);
+        }
+
+        if (! $data['initialized'])
+            return;
+
         // Set validation rules
         //---------------------
          
