@@ -47,6 +47,7 @@ require_once $bootstrap . '/bootstrap.php';
 ///////////////////////////////////////////////////////////////////////////////
 
 clearos_load_language('accounts');
+clearos_load_language('base');
 clearos_load_language('users');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -908,7 +909,7 @@ class User_Driver extends User_Engine
         clearos_profile(__METHOD__, __LINE__);
 
         if (!preg_match("/^([a-z0-9_\-\.\$]+)$/", $username))
-            return lang('users_username_invalid');
+            return lang('base_username_invalid');
 
         if ($check_reserved) {
             $accounts = new Accounts_Driver();

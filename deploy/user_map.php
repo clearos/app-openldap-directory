@@ -40,6 +40,7 @@ require_once $bootstrap . '/bootstrap.php';
 // T R A N S L A T I O N S
 ///////////////////////////////////////////////////////////////////////////////
 
+clearos_load_language('base');
 clearos_load_language('users');
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -54,7 +55,7 @@ $info_map = array(
         'required' => TRUE,
         'validator' => 'validate_username',
         'validator_class' => 'openldap_directory/User_Driver',
-        'description' => lang('users_username'),
+        'description' => lang('base_username'),
         'object_class' => 'inetOrPerson',
         'attribute' => 'uid'
     ),
