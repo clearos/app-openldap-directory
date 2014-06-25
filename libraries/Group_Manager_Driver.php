@@ -232,7 +232,12 @@ class Group_Manager_Driver extends Group_Manager_Engine
         if (($filter === Group_Engine::FILTER_SYSTEM) || ($filter === Group_Engine::FILTER_ALL))
             $posix_data = $this->_get_details_from_posix();
 
-        $data = array_merge($directory_data, $posix_data);
+        // See tracker #1823
+        // $data = array_merge($directory_data, $posix_data);
+
+        $data = $directory_data;
+        foreach ($posix_data as $item)
+            $data[] = $item;
 
         return $data;
     }
