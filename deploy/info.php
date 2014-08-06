@@ -79,6 +79,14 @@ $app['core_file_manifest'] = array(
         'target' => '/usr/sbin/app-openldap-directory-initialize',
         'mode' => '0755',
     ),
+    'nslcd.conf' => array(
+        'target' => '/var/clearos/ldap/synchronize/nslcd.conf',
+        'mode' => '0644',
+        'owner' => 'root',
+        'group' => 'root',
+        'config' => TRUE,
+        'config_params' => 'noreplace',
+    ),
 );
 
 $app['core_directory_manifest'] = array(
