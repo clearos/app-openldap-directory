@@ -129,10 +129,10 @@ class User_Driver extends User_Engine
     //---------------
 
     const UID_RANGE_SYSTEM_MIN = '0';
-    const UID_RANGE_SYSTEM_MAX = '499';
+    const UID_RANGE_SYSTEM_MAX = '999';
     const UID_RANGE_BUILTIN_MIN = '300';
     const UID_RANGE_BUILTIN_MAX = '399';
-    const UID_RANGE_NORMAL_MIN = '1000';
+    const UID_RANGE_NORMAL_MIN = '2000';
     const UID_RANGE_NORMAL_MAX = '59999';
 
     ///////////////////////////////////////////////////////////////////////////////
