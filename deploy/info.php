@@ -99,3 +99,5 @@ $app['core_directory_manifest'] = array(
         'group' => 'webconfig',
     ),
 );
+
+$app['delete_dependency'] = array();
