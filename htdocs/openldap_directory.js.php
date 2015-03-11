@@ -70,8 +70,11 @@ $(document).ready(function() {
     //-----------------------
 
     if ($("#validated_action").val() && ($("#validated_action").val().length != 0)) {
+        var loading_options = Array();
+        loading_options.text = lang_busy;
+
         $("#infoboxes").show();
-        $("#initializing_status").html('<div class="theme-loading-normal">' + lang_busy + '</div>');
+        $("#initializing_status").html(theme_loading(loading_options));
         $("#initializing_box").show();
         $("#directory_information").hide();
         $("#directory_configuration").hide();
@@ -182,8 +185,11 @@ function showDirectoryInfo(payload) {
         // Infobox
         $("#directory_information").hide();
         $("#directory_configuration").hide();
-        if (payload.ldap_system_message && (payload.ldap_system_message.length > 0))
-            $("#initializing_status").html('<div class="theme-loading-normal">' + payload.ldap_system_message + '</div>');
+        if (payload.ldap_system_message && (payload.ldap_system_message.length > 0)) {
+            var loading_options = Array();
+            loading_options.text = payload.ldap_system_message;
+            $("#initializing_status").html(theme_loading(loading_options));
+        }
     }
 }
 
