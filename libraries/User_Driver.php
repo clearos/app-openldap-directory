@@ -797,6 +797,11 @@ class User_Driver extends User_Engine
 
         $this->ldaph->modify($new_dn, $ldap_object);
 
+        // Update default group membership
+        //--------------------------------
+
+        $this->_update_group_memberships();
+
         // Handle plugins
         //---------------
 
@@ -1433,5 +1438,19 @@ class User_Driver extends User_Engine
         } catch (Exception $e) {
             // Not fatal
         }
+    }
+
+    /**
+     * Updates default group memberships.
+     *
+     * @return void
+     */
+
+    protected function _update_group_memberships()
+    {
+        clearos_profile(__METHOD__, __LINE__);
+
+        $group = new Group_Driver(User_Driver::DEFAULT_USER_GROUP);
+        $group->add_member($this->username);
     }
 }
